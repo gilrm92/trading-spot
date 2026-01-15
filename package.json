@@ -1,0 +1,38 @@
+{
+  "name": "torn-trading-spot",
+  "version": "1.0.0",
+  "description": "Torn Trading Spot - Item management system",
+  "main": "index.js",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "npm run build:prisma && npm run build:react",
+    "build:prisma": "prisma generate",
+    "build:react": "react-scripts build",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.7.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.20.1",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "prisma": "^5.7.1",
+    "react-scripts": "5.0.1"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
