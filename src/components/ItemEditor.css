@@ -4,7 +4,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -13,13 +13,14 @@
 }
 
 .item-editor-modal {
-  background: white;
+  background: #2a2a2a;
   border-radius: 8px;
   width: 100%;
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+  border: 1px solid #333;
 }
 
 .item-editor-header {
@@ -27,20 +28,20 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #333;
 }
 
 .item-editor-header h2 {
   margin: 0;
   font-size: 1.5rem;
-  color: #333;
+  color: #e0e0e0;
 }
 
 .close-button {
   background: none;
   border: none;
   font-size: 2rem;
-  color: #666;
+  color: #aaa;
   cursor: pointer;
   padding: 0;
   width: 32px;
@@ -53,7 +54,7 @@
 }
 
 .close-button:hover {
-  background: #f0f0f0;
+  background: #333;
 }
 
 .item-editor-form {
@@ -68,24 +69,26 @@
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
-  color: #333;
+  color: #e0e0e0;
 }
 
 .form-group input,
 .form-group textarea {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ddd;
+  border: 1px solid #444;
   border-radius: 4px;
   font-size: 1rem;
   font-family: inherit;
+  background: #1a1a1a;
+  color: #e0e0e0;
   transition: border-color 0.2s;
 }
 
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #666;
 }
 
 .form-group textarea {
@@ -93,12 +96,13 @@
 }
 
 .error-message {
-  background: #fee;
-  color: #c33;
+  background: #3a1a1a;
+  color: #ff6b6b;
   padding: 0.75rem;
   border-radius: 4px;
   margin-bottom: 1rem;
   font-size: 0.9rem;
+  border: 1px solid #5a2a2a;
 }
 
 .form-actions {
@@ -118,21 +122,25 @@
 }
 
 .cancel-button {
-  background: #f0f0f0;
-  color: #333;
+  background: #444;
+  color: #e0e0e0;
+  border: 1px solid #555;
 }
 
 .cancel-button:hover:not(:disabled) {
-  background: #e0e0e0;
+  background: #555;
+  border-color: #666;
 }
 
 .save-button {
-  background: #667eea;
-  color: white;
+  background: #555;
+  color: #e0e0e0;
+  border: 1px solid #666;
 }
 
 .save-button:hover:not(:disabled) {
-  background: #5568d3;
+  background: #666;
+  border-color: #777;
 }
 
 .cancel-button:disabled,

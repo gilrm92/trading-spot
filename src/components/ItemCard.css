@@ -1,9 +1,10 @@
 .item-card {
-  background: white;
+  background: #2a2a2a;
   border-radius: 8px;
   padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  border: 1px solid #333;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -11,7 +12,8 @@
 
 .item-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
+  border-color: #444;
 }
 
 .item-header {
@@ -24,7 +26,7 @@
 .item-name {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #333;
+  color: #e0e0e0;
   margin: 0;
 }
 
@@ -47,30 +49,31 @@
 }
 
 .info-row.highlight {
-  background: #fff3cd;
+  background: #3a3a2a;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   font-weight: 600;
+  border: 1px solid #4a4a3a;
 }
 
 .info-label {
-  color: #666;
+  color: #aaa;
 }
 
 .info-value {
-  color: #333;
+  color: #e0e0e0;
   font-weight: 500;
 }
 
 .item-stats {
   padding-top: 0.5rem;
-  border-top: 1px solid #eee;
+  border-top: 1px solid #333;
 }
 
 .stats-title {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #666;
+  color: #aaa;
   margin: 0 0 0.75rem 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -90,25 +93,25 @@
 
 .stat-label {
   font-size: 0.75rem;
-  color: #666;
+  color: #aaa;
 }
 
 .stat-value {
   font-size: 1rem;
   font-weight: 600;
-  color: #333;
+  color: #e0e0e0;
 }
 
 .item-bonuses {
   padding-top: 0.5rem;
-  border-top: 1px solid #eee;
+  border-top: 1px solid #333;
   margin-top: 0.5rem;
 }
 
 .bonuses-title {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #666;
+  color: #aaa;
   margin: 0 0 0.75rem 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -121,10 +124,11 @@
 }
 
 .bonus-item {
-  background: #f8f9fa;
+  background: #1f1f1f;
   padding: 0.75rem;
   border-radius: 4px;
-  border-left: 3px solid #667eea;
+  border: 1px solid #333;
+  border-left: 3px solid #666;
 }
 
 .bonus-header {
@@ -136,35 +140,36 @@
 
 .bonus-title {
   font-weight: 600;
-  color: #333;
+  color: #e0e0e0;
   font-size: 0.9rem;
 }
 
 .bonus-value {
   font-size: 0.875rem;
-  color: #667eea;
+  color: #888;
   font-weight: 600;
-  background: rgba(102, 126, 234, 0.1);
+  background: rgba(136, 136, 136, 0.2);
   padding: 0.125rem 0.5rem;
   border-radius: 4px;
+  border: 1px solid #444;
 }
 
 .bonus-description {
   font-size: 0.85rem;
-  color: #555;
+  color: #aaa;
   line-height: 1.4;
   margin: 0;
 }
 
 .item-description {
   padding-top: 0.5rem;
-  border-top: 1px solid #eee;
+  border-top: 1px solid #333;
   margin-top: 0.5rem;
 }
 
 .item-description p {
   font-size: 0.9rem;
-  color: #555;
+  color: #aaa;
   line-height: 1.5;
   margin: 0;
 }
@@ -172,15 +177,16 @@
 .edit-button {
   margin-top: auto;
   padding: 0.5rem 1rem;
-  background: #667eea;
-  color: white;
-  border: none;
+  background: #444;
+  color: #e0e0e0;
+  border: 1px solid #555;
   border-radius: 4px;
   cursor: pointer;
   font-weight: 500;
-  transition: background 0.2s;
+  transition: background 0.2s, border-color 0.2s;
 }
 
 .edit-button:hover {
-  background: #5568d3;
+  background: #555;
+  border-color: #666;
 }
