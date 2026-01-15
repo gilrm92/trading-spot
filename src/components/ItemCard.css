@@ -190,3 +190,62 @@
   background: #555;
   border-color: #666;
 }
+
+.item-reactions {
+  display: flex;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #333;
+  margin-top: 0.5rem;
+}
+
+.reaction-button {
+  flex: 1;
+  padding: 0.5rem;
+  background: #1a1a1a;
+  color: #aaa;
+  border: 1px solid #333;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.reaction-button:hover:not(:disabled) {
+  background: #2a2a2a;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
+.reaction-button.active {
+  background: #333;
+  border-color: #555;
+  color: #e0e0e0;
+}
+
+.reaction-button.heat-button.active {
+  background: #3a1a1a;
+  border-color: #5a2a2a;
+  color: #ff6b6b;
+}
+
+.reaction-button.like-button.active {
+  background: #1a3a1a;
+  border-color: #2a5a2a;
+  color: #6bff6b;
+}
+
+.reaction-button.dislike-button.active {
+  background: #3a1a1a;
+  border-color: #5a2a2a;
+  color: #ff6b6b;
+}
+
+.reaction-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

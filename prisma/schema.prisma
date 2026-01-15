@@ -28,8 +28,26 @@ model Item {
   rarity        String?
   myDescription String?
   myPrice       Int?
+  likes         Int      @default(0)
+  dislikes      Int      @default(0)
+  heatUps       Int      @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  reactions     UserReaction[]
 
   @@map("items")
+}
+
+model UserReaction {
+  id        Int      @id @default(autoincrement())
+  itemId    Int
+  userId    String   // localStorage user ID
+  liked     Boolean?
+  disliked  Boolean?
+  heatedUp  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([itemId, userId])
+  @@map("user_reactions")
 }

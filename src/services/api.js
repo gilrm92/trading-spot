@@ -57,6 +57,20 @@ class ApiService {
       body: JSON.stringify(updates),
     });
   }
+
+  async reactToItem(itemId, reaction, userId) {
+    return this.request('/.netlify/functions/react-item', {
+      method: 'POST',
+      body: JSON.stringify({ itemId, reaction, userId }),
+    });
+  }
+
+  async getUserReactions(userId, itemIds = null) {
+    return this.request('/.netlify/functions/get-user-reactions', {
+      method: 'POST',
+      body: JSON.stringify({ userId, itemIds }),
+    });
+  }
 }
 
 export default new ApiService();

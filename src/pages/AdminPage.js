@@ -4,6 +4,7 @@ import LoginForm from '../components/LoginForm';
 import ItemCard from '../components/ItemCard';
 import ItemEditor from '../components/ItemEditor';
 import api from '../services/api';
+import { getOrCreateUserId } from '../utils/userId';
 import './AdminPage.css';
 
 function AdminPage() {
@@ -57,13 +58,33 @@ function AdminPage() {
       setLoading(true);
       setError(null);
       const data = await api.getItems();
-      setItems(data);
+      
+      // Load user reactions
+      const userId = getOrCreateUserId();
+      const itemIds = data.map(item => item.id);
+      const userReactions = await api.getUserReactions(userId, itemIds);
+      
+      // Attach user reactions to items
+      const itemsWithReactions = data.map(item => ({
+        ...item,
+        userReaction: userReactions[item.id] || null
+      }));
+      
+      setItems(itemsWithReactions);
     } catch (err) {
       setError(err.message || 'Failed to load items');
       console.error('Error loading items:', err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleReactionUpdate = (updatedItem) => {
+    setItems(prevItems => 
+      prevItems.map(item => 
+        item.id === updatedItem.id ? { ...item, ...updatedItem } : item
+      )
+    );
   };
 
   const handleSync = async () => {
@@ -165,6 +186,7 @@ function AdminPage() {
                         item={item}
                         onEdit={handleEdit}
                         isAdmin={true}
+                        onReactionUpdate={handleReactionUpdate}
                       />
                     ))}
                   </div>

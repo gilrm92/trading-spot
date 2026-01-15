@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ItemCard from '../components/ItemCard';
 import api from '../services/api';
+import { getOrCreateUserId } from '../utils/userId';
 import './PublicPage.css';
 
 function PublicPage() {
@@ -17,13 +18,33 @@ function PublicPage() {
       setLoading(true);
       setError(null);
       const data = await api.getItems();
-      setItems(data);
+      
+      // Load user reactions
+      const userId = getOrCreateUserId();
+      const itemIds = data.map(item => item.id);
+      const userReactions = await api.getUserReactions(userId, itemIds);
+      
+      // Attach user reactions to items
+      const itemsWithReactions = data.map(item => ({
+        ...item,
+        userReaction: userReactions[item.id] || null
+      }));
+      
+      setItems(itemsWithReactions);
     } catch (err) {
       setError(err.message || 'Failed to load items');
       console.error('Error loading items:', err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleReactionUpdate = (updatedItem) => {
+    setItems(prevItems => 
+      prevItems.map(item => 
+        item.id === updatedItem.id ? { ...item, ...updatedItem } : item
+      )
+    );
   };
 
   if (loading) {
@@ -76,7 +97,11 @@ function PublicPage() {
               </div>
               <div className="items-grid">
                 {items.map((item) => (
-                  <ItemCard key={item.id} item={item} />
+                  <ItemCard 
+                    key={item.id} 
+                    item={item} 
+                    onReactionUpdate={handleReactionUpdate}
+                  />
                 ))}
               </div>
             </>
