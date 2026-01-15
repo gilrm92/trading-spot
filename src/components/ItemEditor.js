@@ -62,13 +62,13 @@ function ItemEditor({ item, onSave, onCancel }) {
           </div>
 
           <div className="form-group">
-            <label htmlFor="price">My Price</label>
+            <label htmlFor="price">Buyout price</label>
             <input
               type="number"
               id="price"
               value={myPrice}
               onChange={(e) => setMyPrice(e.target.value)}
-              placeholder="Enter your price..."
+              placeholder="Enter buyout price..."
               min="0"
             />
           </div>

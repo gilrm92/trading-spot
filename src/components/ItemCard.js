@@ -80,7 +80,7 @@ function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate }) {
         )}
         {item.myPrice !== null && item.myPrice !== undefined && (
           <div className="info-row highlight">
-            <span className="info-label">My Price:</span>
+            <span className="info-label">Buyout price:</span>
             <span className="info-value">${formatPrice(item.myPrice)}</span>
           </div>
         )}
