@@ -80,7 +80,14 @@ function PublicPage() {
       <header className="page-header">
         <div className="container">
           <h1>Torn Trading Spot</h1>
-          <p className="subtitle">Browse available items</p>
+          <div className="header-content">
+            <p className="header-message">
+              Wanna bump up your RW strategies? Weapons with different bonuses can turn the tides of a difficult RW.
+            </p>
+            <p className="header-help">
+              I'm <span className="nickname">CrowleyJr</span> and I can help you choose the first weapon. My focus is to help you succeed.
+            </p>
+          </div>
         </div>
       </header>
 
