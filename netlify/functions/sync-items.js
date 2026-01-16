@@ -97,6 +97,31 @@ exports.handler = async (event, context) => {
         const stats = itemDetails.stats || {};
         const bonuses = itemDetails.bonuses || [];
 
+        // Fetch item image from items endpoint using tornId
+        let imageUrl = null;
+        try {
+          const itemsResponse = await fetch(
+            `https://api.torn.com/v2/torn/${item.ID}/items?sort=ASC&key=${apiKey}`
+          );
+          
+          if (itemsResponse.ok) {
+            const itemsData = await itemsResponse.json();
+            if (itemsData.items && itemsData.items.length > 0) {
+              // Find the item that matches our UID (the item.id in the response should match item.UID)
+              // If not found, take the first item
+              const matchingItem = itemsData.items.find(i => i.id === item.UID) || itemsData.items[0];
+              if (matchingItem && matchingItem.image) {
+                imageUrl = matchingItem.image;
+              }
+            }
+          } else {
+            console.error(`Failed to fetch items for tornId ${item.ID}: ${itemsResponse.status}`);
+          }
+        } catch (imageError) {
+          console.error(`Failed to fetch image for item ${item.ID}:`, imageError);
+          // Continue without image if fetch fails
+        }
+
         // Prepare data for database
         const itemData = {
           tornId: item.ID,
@@ -113,6 +138,7 @@ exports.handler = async (event, context) => {
           quality: stats.quality || null,
           bonuses: bonuses.length > 0 ? bonuses : null,
           rarity: itemDetails.rarity || null,
+          image: imageUrl,
         };
 
         // Upsert item (create or update)

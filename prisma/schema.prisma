@@ -26,6 +26,7 @@ model Item {
   quality       Float?
   bonuses       Json?
   rarity        String?
+  image         String?
   myDescription String?
   myPrice       Int?
   likes         Int      @default(0)

@@ -67,6 +67,19 @@ function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate }) {
         )}
       </div>
 
+      {item.image && (
+        <div className="item-image-container">
+          <img 
+            src={item.image} 
+            alt={item.name}
+            className="item-image"
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
+          />
+        </div>
+      )}
+
       <div className="item-info">
         <div className="info-row">
           <span className="info-label">Type:</span>
