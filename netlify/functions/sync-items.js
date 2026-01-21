@@ -76,26 +76,34 @@ exports.handler = async (event, context) => {
     // Process each item
     for (const item of items) {
       try {
-        // Fetch item details
-        const detailsResponse = await fetch(
-          `https://api.torn.com/v2/torn/${item.UID}/itemdetails?key=${apiKey}`
-        );
+        // Initialize defaults for item details (in case fetch fails)
+        let itemDetails = {};
+        let stats = {};
+        let bonuses = [];
         
-        if (!detailsResponse.ok) {
-          errors.push(`Failed to fetch details for UID ${item.UID}`);
-          continue;
+        // Fetch item details (but continue even if this fails)
+        try {
+          const detailsResponse = await fetch(
+            `https://api.torn.com/v2/torn/${item.UID}/itemdetails?key=${apiKey}`
+          );
+          
+          if (detailsResponse.ok) {
+            const detailsData = await detailsResponse.json();
+            
+            if (!detailsData.error) {
+              itemDetails = detailsData.itemdetails || {};
+              stats = itemDetails.stats || {};
+              bonuses = itemDetails.bonuses || [];
+            } else {
+              errors.push(`Error for UID ${item.UID}: ${detailsData.error.error || 'Unknown error'}`);
+            }
+          } else {
+            errors.push(`Failed to fetch details for UID ${item.UID} (status: ${detailsResponse.status})`);
+          }
+        } catch (detailsError) {
+          errors.push(`Error fetching details for UID ${item.UID}: ${detailsError.message}`);
+          // Continue with basic item data from display endpoint
         }
-
-        const detailsData = await detailsResponse.json();
-        
-        if (detailsData.error) {
-          errors.push(`Error for UID ${item.UID}: ${detailsData.error.error || 'Unknown error'}`);
-          continue;
-        }
-
-        const itemDetails = detailsData.itemdetails || {};
-        const stats = itemDetails.stats || {};
-        const bonuses = itemDetails.bonuses || [];
 
         // Fetch item image from items endpoint using tornId
         let imageUrl = null;
@@ -147,12 +155,28 @@ exports.handler = async (event, context) => {
         });
 
         if (existingItem) {
+          // When updating, preserve custom fields and status flags
+          const updateData = {
+            ...itemData,
+            // Preserve custom admin fields
+            myDescription: existingItem.myDescription,
+            myPrice: existingItem.myPrice,
+            // Preserve status flags
+            isSold: existingItem.isSold,
+            isDeleted: existingItem.isDeleted,
+            // Preserve reaction counts
+            likes: existingItem.likes,
+            dislikes: existingItem.dislikes,
+            heatUps: existingItem.heatUps
+          };
+          
           await prisma.item.update({
             where: { uid: BigInt(item.UID) },
-            data: itemData
+            data: updateData
           });
           updated++;
         } else {
+          // New item - create it
           await prisma.item.create({
             data: itemData
           });
