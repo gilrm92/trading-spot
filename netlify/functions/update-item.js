@@ -67,11 +67,12 @@ exports.handler = async (event, context) => {
 
     // Parse request body
     const body = JSON.parse(event.body || '{}');
-    const { myDescription, myPrice, likes, dislikes, heatUps } = body;
+    const { myDescription, myPrice, likes, dislikes, heatUps, isSold } = body;
 
     // Validate that at least one field is provided
     if (myDescription === undefined && myPrice === undefined && 
-        likes === undefined && dislikes === undefined && heatUps === undefined) {
+        likes === undefined && dislikes === undefined && heatUps === undefined &&
+        isSold === undefined) {
       return {
         statusCode: 400,
         headers: {
@@ -128,6 +129,18 @@ exports.handler = async (event, context) => {
       };
     }
 
+    // Validate isSold is a boolean if provided
+    if (isSold !== undefined && typeof isSold !== 'boolean') {
+      return {
+        statusCode: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({ error: 'isSold must be a boolean' })
+      };
+    }
+
     // Check if item exists
     const existingItem = await prisma.item.findUnique({
       where: { id: itemId }
@@ -160,6 +173,9 @@ exports.handler = async (event, context) => {
     }
     if (heatUps !== undefined) {
       updateData.heatUps = heatUps;
+    }
+    if (isSold !== undefined) {
+      updateData.isSold = isSold;
     }
 
     // Update item

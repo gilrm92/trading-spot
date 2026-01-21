@@ -27,10 +27,15 @@ exports.handler = async (event, context) => {
   }
 
   try {
+    // Get all items that are not deleted, sorted by isSold (sold items last) then by name
     const items = await prisma.item.findMany({
-      orderBy: {
-        name: 'asc'
-      }
+      where: {
+        isDeleted: false
+      },
+      orderBy: [
+        { isSold: 'asc' },  // false (not sold) first, true (sold) last
+        { name: 'asc' }
+      ]
     });
 
     // Convert BigInt to string for JSON serialization

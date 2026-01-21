@@ -7,6 +7,7 @@ function ItemEditor({ item, onSave, onCancel }) {
   const [likes, setLikes] = useState(item.likes || 0);
   const [dislikes, setDislikes] = useState(item.dislikes || 0);
   const [heatUps, setHeatUps] = useState(item.heatUps || 0);
+  const [isSold, setIsSold] = useState(item.isSold || false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
@@ -31,6 +32,9 @@ function ItemEditor({ item, onSave, onCancel }) {
       }
       if (heatUps !== (item.heatUps || 0)) {
         updates.heatUps = parseInt(heatUps);
+      }
+      if (isSold !== (item.isSold || false)) {
+        updates.isSold = isSold;
       }
 
       await onSave(item.id, updates);
@@ -71,6 +75,18 @@ function ItemEditor({ item, onSave, onCancel }) {
               placeholder="Enter buyout price..."
               min="0"
             />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="isSold" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <input
+                type="checkbox"
+                id="isSold"
+                checked={isSold}
+                onChange={(e) => setIsSold(e.target.checked)}
+              />
+              <span>Mark as SOLD</span>
+            </label>
           </div>
 
           <div className="form-group">

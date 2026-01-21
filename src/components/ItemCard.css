@@ -16,6 +16,16 @@
   border-color: #444;
 }
 
+.item-card.item-sold {
+  opacity: 0.7;
+  border-color: #555;
+}
+
+.item-card.item-sold:hover {
+  transform: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
 .item-header {
   display: flex;
   justify-content: space-between;
@@ -208,6 +218,29 @@
 .edit-button:hover {
   background: #555;
   border-color: #666;
+}
+
+.delete-button {
+  margin-top: auto;
+  padding: 0.5rem 1rem;
+  background: #5a1a1a;
+  color: #ffaaaa;
+  border: 1px solid #7a2a2a;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.delete-button:hover {
+  background: #7a2a2a;
+  border-color: #9a3a3a;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: auto;
 }
 
 .item-reactions {

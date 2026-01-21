@@ -166,15 +166,19 @@ exports.handler = async (event, context) => {
     }
 
     // Remove items that are no longer in the Torn API response
+    // But preserve items that are marked as sold or deleted
     const allItems = await prisma.item.findMany();
     let removed = 0;
 
     for (const dbItem of allItems) {
       if (!syncedUids.has(dbItem.uid.toString())) {
-        await prisma.item.delete({
-          where: { id: dbItem.id }
-        });
-        removed++;
+        // Don't delete items that are sold or already marked as deleted
+        if (!dbItem.isSold && !dbItem.isDeleted) {
+          await prisma.item.delete({
+            where: { id: dbItem.id }
+          });
+          removed++;
+        }
       }
     }
 

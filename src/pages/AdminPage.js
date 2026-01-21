@@ -125,6 +125,16 @@ function AdminPage() {
     setEditingItem(null);
   };
 
+  const handleDelete = async (itemId) => {
+    try {
+      await api.deleteItem(itemId);
+      await loadItems();
+    } catch (err) {
+      setError(err.message || 'Failed to delete item');
+      console.error('Error deleting item:', err);
+    }
+  };
+
   if (!isAuthenticated) {
     return <LoginForm onLogin={handleLogin} />;
   }
@@ -187,6 +197,7 @@ function AdminPage() {
                         onEdit={handleEdit}
                         isAdmin={true}
                         onReactionUpdate={handleReactionUpdate}
+                        onDelete={handleDelete}
                       />
                     ))}
                   </div>

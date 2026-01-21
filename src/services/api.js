@@ -71,6 +71,12 @@ class ApiService {
       body: JSON.stringify({ userId, itemIds }),
     });
   }
+
+  async deleteItem(itemId) {
+    return this.request(`/.netlify/functions/delete-item?id=${itemId}`, {
+      method: 'DELETE',
+    });
+  }
 }
 
 export default new ApiService();

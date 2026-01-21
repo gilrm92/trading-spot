@@ -3,7 +3,7 @@ import './ItemCard.css';
 import api from '../services/api';
 import { getOrCreateUserId } from '../utils/userId';
 
-function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate }) {
+function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate, onDelete }) {
   const [userReaction, setUserReaction] = useState(item.userReaction || null);
   const [reactionCounts, setReactionCounts] = useState({
     likes: item.likes || 0,
@@ -53,18 +53,35 @@ function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate }) {
     }
   }
 
+  const isSold = item.isSold || false;
+
   return (
-    <div className="item-card">
+    <div className={`item-card ${isSold ? 'item-sold' : ''}`}>
       <div className="item-header">
         <h3 className="item-name">{item.name}</h3>
-        {item.rarity && (
-          <span
-            className="item-rarity"
-            style={{ color: getRarityColor(item.rarity) }}
-          >
-            {item.rarity}
-          </span>
-        )}
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          {isSold && (
+            <span className="sold-badge" style={{ 
+              background: '#ff4444', 
+              color: '#fff', 
+              padding: '0.25rem 0.5rem', 
+              borderRadius: '4px', 
+              fontSize: '0.75rem',
+              fontWeight: '600',
+              textTransform: 'uppercase'
+            }}>
+              SOLD
+            </span>
+          )}
+          {item.rarity && (
+            <span
+              className="item-rarity"
+              style={{ color: getRarityColor(item.rarity) }}
+            >
+              {item.rarity}
+            </span>
+          )}
+        </div>
       </div>
 
       {item.image && (
@@ -185,33 +202,49 @@ function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate }) {
         <button
           className={`reaction-button heat-button ${userReaction?.heatedUp ? 'active' : ''}`}
           onClick={() => handleReaction('heat')}
-          disabled={reacting}
-          title={`This item is heated up! ${reactionCounts.heatUps} user${reactionCounts.heatUps !== 1 ? 's' : ''} heat!`}
+          disabled={reacting || isSold}
+          title={isSold ? 'This item is sold' : `This item is heated up! ${reactionCounts.heatUps} user${reactionCounts.heatUps !== 1 ? 's' : ''} heat!`}
         >
           🔥 {reactionCounts.heatUps}
         </button>
         <button
           className={`reaction-button like-button ${userReaction?.liked ? 'active' : ''}`}
           onClick={() => handleReaction('like')}
-          disabled={reacting || userReaction?.disliked}
-          title={`${reactionCounts.likes} user${reactionCounts.likes !== 1 ? 's' : ''} liked this item`}
+          disabled={reacting || userReaction?.disliked || isSold}
+          title={isSold ? 'This item is sold' : `${reactionCounts.likes} user${reactionCounts.likes !== 1 ? 's' : ''} liked this item`}
         >
           👍 {reactionCounts.likes}
         </button>
         <button
           className={`reaction-button dislike-button ${userReaction?.disliked ? 'active' : ''}`}
           onClick={() => handleReaction('dislike')}
-          disabled={reacting || userReaction?.liked}
-          title={`${reactionCounts.dislikes} user${reactionCounts.dislikes !== 1 ? 's' : ''} disliked this item`}
+          disabled={reacting || userReaction?.liked || isSold}
+          title={isSold ? 'This item is sold' : `${reactionCounts.dislikes} user${reactionCounts.dislikes !== 1 ? 's' : ''} disliked this item`}
         >
           👎 {reactionCounts.dislikes}
         </button>
       </div>
 
-      {isAdmin && onEdit && (
-        <button className="edit-button" onClick={() => onEdit(item)}>
-          Edit
-        </button>
+      {isAdmin && (
+        <div className="admin-actions" style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto' }}>
+          {onEdit && (
+            <button className="edit-button" onClick={() => onEdit(item)}>
+              Edit
+            </button>
+          )}
+          {onDelete && (
+            <button 
+              className="delete-button" 
+              onClick={() => {
+                if (window.confirm(`Are you sure you want to delete "${item.name}"? This action cannot be undone.`)) {
+                  onDelete(item.id);
+                }
+              }}
+            >
+              Delete
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
