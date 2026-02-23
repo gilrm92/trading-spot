@@ -40,6 +40,39 @@ class ApiService {
     return this.request('/.netlify/functions/get-items');
   }
 
+  async searchItems(params = {}) {
+    const sp = new URLSearchParams();
+    if (params.q != null && params.q !== '') sp.set('q', params.q);
+    if (params.sort != null) sp.set('sort', params.sort);
+    if (params.order != null) sp.set('order', params.order);
+    if (params.minPrice != null) sp.set('minPrice', params.minPrice);
+    if (params.maxPrice != null) sp.set('maxPrice', params.maxPrice);
+    if (params.minQuality != null) sp.set('minQuality', params.minQuality);
+    if (params.minDamage != null) sp.set('minDamage', params.minDamage);
+    if (params.minAccuracy != null) sp.set('minAccuracy', params.minAccuracy);
+    if (params.limit != null) sp.set('limit', params.limit);
+    const qs = sp.toString();
+    return this.request(`/.netlify/functions/get-items${qs ? `?${qs}` : ''}`);
+  }
+
+  async getMyItems() {
+    return this.request('/.netlify/functions/get-my-items');
+  }
+
+  async createItem(payload) {
+    return this.request('/.netlify/functions/create-item', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async addByUid(uid, apiKey) {
+    return this.request('/.netlify/functions/add-by-uid', {
+      method: 'POST',
+      body: JSON.stringify({ uid, apiKey }),
+    });
+  }
+
   async syncItems(apiKey) {
     return this.request(`/.netlify/functions/sync-items?key=${encodeURIComponent(apiKey)}`);
   }

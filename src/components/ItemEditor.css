@@ -37,6 +37,13 @@
   color: #e0e0e0;
 }
 
+.modal-hint {
+  margin: 0 1.5rem 1rem;
+  font-size: 0.9rem;
+  color: #aaa;
+  line-height: 1.4;
+}
+
 .close-button {
   background: none;
   border: none;

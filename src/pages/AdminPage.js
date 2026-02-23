@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import LoginForm from '../components/LoginForm';
 import ItemCard from '../components/ItemCard';
 import ItemEditor from '../components/ItemEditor';
@@ -11,19 +11,20 @@ function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
   const [apiKey, setApiKey] = useState('');
+  const [showAddManual, setShowAddManual] = useState(false);
+  const [showAddByUid, setShowAddByUid] = useState(false);
+  const [adding, setAdding] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is already authenticated
     const token = localStorage.getItem('authToken');
     const storedApiKey = localStorage.getItem('apiKey');
-    if (token && storedApiKey) {
+    if (token) {
       setIsAuthenticated(true);
-      setApiKey(storedApiKey);
+      if (storedApiKey) setApiKey(storedApiKey);
       loadItems();
     }
   }, []);
@@ -37,9 +38,7 @@ function AdminPage() {
       setIsAuthenticated(true);
       await loadItems();
     } catch (err) {
-      if (err.waitTime) {
-        throw { ...err, waitTime: err.waitTime };
-      }
+      if (err.waitTime) throw { ...err, waitTime: err.waitTime };
       throw err;
     }
   };
@@ -57,22 +56,17 @@ function AdminPage() {
     try {
       setLoading(true);
       setError(null);
-      const data = await api.getItems();
-      
-      // Load user reactions
+      const data = await api.getMyItems();
       const userId = getOrCreateUserId();
-      const itemIds = data.map(item => item.id);
+      const itemIds = data.map((item) => item.id);
       const userReactions = await api.getUserReactions(userId, itemIds);
-      
-      // Attach user reactions to items
-      const itemsWithReactions = data.map(item => ({
+      const itemsWithReactions = data.map((item) => ({
         ...item,
-        userReaction: userReactions[item.id] || null
+        userReaction: userReactions[item.id] || null,
       }));
-      
       setItems(itemsWithReactions);
     } catch (err) {
-      setError(err.message || 'Failed to load items');
+      setError(err.message || 'Failed to load your items');
       console.error('Error loading items:', err);
     } finally {
       setLoading(false);
@@ -80,36 +74,14 @@ function AdminPage() {
   };
 
   const handleReactionUpdate = (updatedItem) => {
-    setItems(prevItems => 
-      prevItems.map(item => 
+    setItems((prevItems) =>
+      prevItems.map((item) =>
         item.id === updatedItem.id ? { ...item, ...updatedItem } : item
       )
     );
   };
 
-  const handleSync = async () => {
-    if (!apiKey) {
-      setError('API key is required for syncing');
-      return;
-    }
-
-    try {
-      setSyncing(true);
-      setError(null);
-      const result = await api.syncItems(apiKey);
-      await loadItems();
-      alert(`Sync completed! Created: ${result.created}, Updated: ${result.updated}, Removed: ${result.removed}`);
-    } catch (err) {
-      setError(err.message || 'Failed to sync items');
-      console.error('Error syncing items:', err);
-    } finally {
-      setSyncing(false);
-    }
-  };
-
-  const handleEdit = (item) => {
-    setEditingItem(item);
-  };
+  const handleEdit = (item) => setEditingItem(item);
 
   const handleSave = async (itemId, updates) => {
     try {
@@ -121,9 +93,7 @@ function AdminPage() {
     }
   };
 
-  const handleCancelEdit = () => {
-    setEditingItem(null);
-  };
+  const handleCancelEdit = () => setEditingItem(null);
 
   const handleDelete = async (itemId) => {
     try {
@@ -145,18 +115,28 @@ function AdminPage() {
         <div className="container">
           <div className="header-content">
             <div>
-              <h1>Admin Panel</h1>
-              <p className="subtitle">Manage your items</p>
+              <h1>List your items</h1>
+              <p className="subtitle">Manage your listings. Add items manually or by Torn item UID.</p>
             </div>
             <div className="header-actions">
+              <Link to="/" className="seller-link back-link">
+                Back to search
+              </Link>
               <button
-                onClick={handleSync}
+                type="button"
+                onClick={() => setShowAddManual(true)}
                 className="sync-button"
-                disabled={syncing || !apiKey}
               >
-                {syncing ? 'Syncing...' : 'Sync Items'}
+                Add manually
               </button>
-              <button onClick={handleLogout} className="logout-button">
+              <button
+                type="button"
+                onClick={() => setShowAddByUid(true)}
+                className="sync-button"
+              >
+                Add by UID
+              </button>
+              <button type="button" onClick={handleLogout} className="logout-button">
                 Logout
               </button>
             </div>
@@ -169,25 +149,27 @@ function AdminPage() {
           {error && (
             <div className="error-banner">
               <span>{error}</span>
-              <button onClick={() => setError(null)} className="close-error">×</button>
+              <button type="button" onClick={() => setError(null)} className="close-error">
+                ×
+              </button>
             </div>
           )}
 
           {loading ? (
             <div className="loading-container">
-              <div className="spinner"></div>
-              <p>Loading items...</p>
+              <div className="spinner" />
+              <p>Loading your items...</p>
             </div>
           ) : (
             <>
               {items.length === 0 ? (
                 <div className="empty-state">
-                  <p>No items available. Click "Sync Items" to fetch from Torn API.</p>
+                  <p>You have not listed any items. Add items manually or by UID above.</p>
                 </div>
               ) : (
                 <>
                   <div className="items-header">
-                    <h2>Items ({items.length})</h2>
+                    <h2>Your items ({items.length})</h2>
                   </div>
                   <div className="items-grid">
                     {items.map((item) => (
@@ -195,7 +177,7 @@ function AdminPage() {
                         key={item.id}
                         item={item}
                         onEdit={handleEdit}
-                        isAdmin={true}
+                        isAdmin
                         onReactionUpdate={handleReactionUpdate}
                         onDelete={handleDelete}
                       />
@@ -215,6 +197,233 @@ function AdminPage() {
           onCancel={handleCancelEdit}
         />
       )}
+
+      {showAddManual && (
+        <AddManualModal
+          onClose={() => setShowAddManual(false)}
+          onSuccess={() => {
+            setShowAddManual(false);
+            loadItems();
+          }}
+          adding={adding}
+          setAdding={setAdding}
+        />
+      )}
+
+      {showAddByUid && (
+        <AddByUidModal
+          onClose={() => setShowAddByUid(false)}
+          onSuccess={() => {
+            setShowAddByUid(false);
+            loadItems();
+          }}
+          apiKey={apiKey}
+          adding={adding}
+          setAdding={setAdding}
+        />
+      )}
+    </div>
+  );
+}
+
+function AddManualModal({ onClose, onSuccess, adding, setAdding }) {
+  const [name, setName] = useState('');
+  const [type, setType] = useState('');
+  const [quantity, setQuantity] = useState(1);
+  const [marketPrice, setMarketPrice] = useState('');
+  const [myDescription, setMyDescription] = useState('');
+  const [myPrice, setMyPrice] = useState('');
+  const [localError, setLocalError] = useState(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLocalError(null);
+    if (!name.trim() || !type.trim()) {
+      setLocalError('Name and type are required');
+      return;
+    }
+    setAdding(true);
+    try {
+      const res = await api.createItem({
+        name: name.trim(),
+        type: type.trim(),
+        quantity: parseInt(quantity, 10) || 1,
+        marketPrice: parseInt(marketPrice, 10) || 0,
+        myDescription: myDescription.trim() || undefined,
+        myPrice: myPrice === '' ? undefined : parseInt(myPrice, 10),
+      });
+      if (res && res.item) onSuccess();
+    } catch (err) {
+      setLocalError(err.message || 'Failed to create item');
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  return (
+    <div className="item-editor-overlay">
+      <div className="item-editor-modal">
+        <div className="item-editor-header">
+          <h2>Add item manually</h2>
+          <button type="button" className="close-button" onClick={onClose}>
+            ×
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="item-editor-form">
+          <div className="form-group">
+            <label htmlFor="name">Name *</label>
+            <input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Item name"
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="type">Type *</label>
+            <input
+              id="type"
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              placeholder="e.g. Weapon"
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="quantity">Quantity</label>
+            <input
+              type="number"
+              id="quantity"
+              min="1"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="marketPrice">Market price</label>
+            <input
+              type="number"
+              id="marketPrice"
+              min="0"
+              value={marketPrice}
+              onChange={(e) => setMarketPrice(e.target.value)}
+              placeholder="0"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="myPrice">Your price (buyout)</label>
+            <input
+              type="number"
+              id="myPrice"
+              min="0"
+              value={myPrice}
+              onChange={(e) => setMyPrice(e.target.value)}
+              placeholder="Optional"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="myDescription">Description</label>
+            <textarea
+              id="myDescription"
+              value={myDescription}
+              onChange={(e) => setMyDescription(e.target.value)}
+              placeholder="Optional"
+              rows={3}
+            />
+          </div>
+          {localError && <div className="error-message">{localError}</div>}
+          <div className="form-actions">
+            <button type="button" onClick={onClose} className="cancel-button" disabled={adding}>
+              Cancel
+            </button>
+            <button type="submit" className="save-button" disabled={adding}>
+              {adding ? 'Adding...' : 'Add item'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function AddByUidModal({ onClose, onSuccess, apiKey, adding, setAdding }) {
+  const [uid, setUid] = useState('');
+  const [keyInput, setKeyInput] = useState(apiKey || '');
+  const [localError, setLocalError] = useState(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLocalError(null);
+    const uidNum = parseInt(uid, 10);
+    if (isNaN(uidNum) || uidNum <= 0) {
+      setLocalError('Enter a valid item UID (positive number)');
+      return;
+    }
+    const keyToUse = keyInput.trim();
+    if (!keyToUse) {
+      setLocalError('API key is required to fetch item from Torn');
+      return;
+    }
+    setAdding(true);
+    try {
+      await api.addByUid(uidNum, keyToUse);
+      onSuccess();
+    } catch (err) {
+      setLocalError(err.message || 'Failed to add item by UID');
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  return (
+    <div className="item-editor-overlay">
+      <div className="item-editor-modal">
+        <div className="item-editor-header">
+          <h2>Add item by UID</h2>
+          <button type="button" className="close-button" onClick={onClose}>
+            ×
+          </button>
+        </div>
+        <p className="modal-hint">
+          Enter the Torn item UID (from your display or inventory). Your API key is used only to
+          fetch the item and is not stored.
+        </p>
+        <form onSubmit={handleSubmit} className="item-editor-form">
+          <div className="form-group">
+            <label htmlFor="uid">Item UID *</label>
+            <input
+              type="number"
+              id="uid"
+              min="1"
+              value={uid}
+              onChange={(e) => setUid(e.target.value)}
+              placeholder="e.g. 12345678"
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="apiKey">Torn API key *</label>
+            <input
+              type="password"
+              id="apiKey"
+              value={keyInput}
+              onChange={(e) => setKeyInput(e.target.value)}
+              placeholder="Your API key for this request"
+              required
+            />
+          </div>
+          {localError && <div className="error-message">{localError}</div>}
+          <div className="form-actions">
+            <button type="button" onClick={onClose} className="cancel-button" disabled={adding}>
+              Cancel
+            </button>
+            <button type="submit" className="save-button" disabled={adding}>
+              {adding ? 'Adding...' : 'Fetch and add'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

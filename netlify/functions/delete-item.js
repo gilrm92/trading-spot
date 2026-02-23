@@ -81,6 +81,17 @@ exports.handler = async (event, context) => {
       };
     }
 
+    if (existingItem.sellerId !== auth.userId) {
+      return {
+        statusCode: 403,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({ error: 'You can only delete your own listings' })
+      };
+    }
+
     // Mark item as deleted (soft delete)
     const updatedItem = await prisma.item.update({
       where: { id: itemId },

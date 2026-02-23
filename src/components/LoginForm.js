@@ -39,8 +39,8 @@ function LoginForm({ onLogin }) {
   return (
     <div className="login-form-container">
       <div className="login-form">
-        <h2>Admin Login</h2>
-        <p className="login-subtitle">Enter your Torn API key to access the admin panel</p>
+        <h2>List your items</h2>
+        <p className="login-subtitle">Enter your Torn public API key to manage your listings. Your key is not stored on our servers.</p>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">

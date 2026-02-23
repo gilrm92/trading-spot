@@ -157,6 +157,17 @@ exports.handler = async (event, context) => {
       };
     }
 
+    if (existingItem.sellerId !== auth.userId) {
+      return {
+        statusCode: 403,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({ error: 'You can only edit your own listings' })
+      };
+    }
+
     // Prepare update data
     const updateData = {};
     if (myDescription !== undefined) {

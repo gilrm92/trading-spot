@@ -132,6 +132,7 @@ exports.handler = async (event, context) => {
 
         // Prepare data for database
         const itemData = {
+          sellerId: auth.userId,
           tornId: item.ID,
           uid: BigInt(item.UID),
           name: item.name,
@@ -155,9 +156,10 @@ exports.handler = async (event, context) => {
         });
 
         if (existingItem) {
-          // When updating, preserve custom fields and status flags
+          // When updating, preserve custom fields and status flags (and seller)
           const updateData = {
             ...itemData,
+            sellerId: existingItem.sellerId,
             // Preserve custom admin fields
             myDescription: existingItem.myDescription,
             myPrice: existingItem.myPrice,

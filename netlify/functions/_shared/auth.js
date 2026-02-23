@@ -49,11 +49,11 @@ async function verifyTornAPIKey(apiKey) {
       return { valid: false, error: data.error };
     }
     
-    if (data.profile && data.profile.id === ALLOWED_USER_ID) {
+    if (data.profile && data.profile.id) {
       return { valid: true, user: data.profile };
     }
     
-    return { valid: false, error: 'Unauthorized user' };
+    return { valid: false, error: 'Invalid API key or profile' };
   } catch (error) {
     return { valid: false, error: error.message };
   }
@@ -86,7 +86,7 @@ function requireAuth(event) {
   }
   
   const decoded = verifyToken(token);
-  if (!decoded || decoded.userId !== ALLOWED_USER_ID) {
+  if (!decoded || !decoded.userId) {
     return { authenticated: false, error: 'Invalid token' };
   }
   
