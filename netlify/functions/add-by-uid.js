@@ -1,5 +1,7 @@
 const prisma = require('./_shared/prisma');
 const { requireAuth, verifyTornAPIKey } = require('./_shared/auth');
+const ALLOWED_WEAPON_TYPES = ['Primary', 'Secondary', 'Melee'];
+const ALLOWED_RARITIES = ['yellow', 'orange', 'red'];
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -120,6 +122,27 @@ exports.handler = async (event, context) => {
 
     const name = itemDetails.name || 'Unknown';
     const type = itemDetails.type || 'Unknown';
+    const rarity = (itemDetails.rarity || '').trim().toLowerCase();
+
+    const isWeapon = ALLOWED_WEAPON_TYPES.includes(type);
+    if (!isWeapon) {
+      return {
+        statusCode: 400,
+        headers: corsHeaders,
+        body: JSON.stringify({ error: 'Only weapons can be listed. This item is not a weapon.' }),
+      };
+    }
+
+    if (!ALLOWED_RARITIES.includes(rarity)) {
+      return {
+        statusCode: 400,
+        headers: corsHeaders,
+        body: JSON.stringify({
+          error: `Only yellow, orange, or red quality weapons can be listed. This item has "${itemDetails.rarity || 'unknown'}" rarity.`,
+        }),
+      };
+    }
+
     const quantity = 1;
     const circulation = itemDetails.circulation != null ? itemDetails.circulation : 0;
     const marketPrice =

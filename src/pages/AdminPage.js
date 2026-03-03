@@ -337,8 +337,9 @@ function AddByUidModal({ onClose, onSuccess, apiKey, adding, setAdding }) {
           </button>
         </div>
         <p className="modal-hint">
-          Enter the Torn item UID (from your display or inventory). Your API key is used only to
-          fetch the item and is not stored.
+          Enter the Torn item UID (from your display or inventory). Only weapons with yellow,
+          orange, or red quality can be listed. Your API key is used only to fetch the item and is
+          not stored.
         </p>
         <form onSubmit={handleSubmit} className="item-editor-form">
           <div className="form-group">
