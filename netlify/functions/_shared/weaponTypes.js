@@ -6,5 +6,4 @@ module.exports = [
   'Primary',
   'Secondary',
   'Melee',
-  'Temporary',
 ];

@@ -46,6 +46,22 @@ exports.handler = async (event, context) => {
       };
     }
 
+    // Fetch user profile for seller name
+    let sellerName = null;
+    try {
+      const profileResponse = await fetch(
+        `https://api.torn.com/v2/user/basic?striptags=true&key=${apiKey}`
+      );
+      if (profileResponse.ok) {
+        const profileData = await profileResponse.json();
+        if (profileData.profile && !profileData.error) {
+          sellerName = profileData.profile.name || profileData.profile.username || null;
+        }
+      }
+    } catch (e) {
+      // Continue without seller name
+    }
+
     // Fetch items from Torn API
     const displayResponse = await fetch(
       `https://api.torn.com/user/?selections=display&key=${apiKey}`
@@ -133,6 +149,7 @@ exports.handler = async (event, context) => {
         // Prepare data for database
         const itemData = {
           sellerId: auth.userId,
+          sellerName,
           tornId: item.ID,
           uid: BigInt(item.UID),
           name: item.name,
@@ -160,6 +177,7 @@ exports.handler = async (event, context) => {
           const updateData = {
             ...itemData,
             sellerId: existingItem.sellerId,
+            sellerName: sellerName ?? existingItem.sellerName,
             // Preserve custom admin fields
             myDescription: existingItem.myDescription,
             myPrice: existingItem.myPrice,

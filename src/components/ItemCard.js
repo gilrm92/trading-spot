@@ -123,7 +123,7 @@ function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate, onDelete })
               rel="noopener noreferrer"
               className="info-value seller-link"
             >
-              View profile
+              {item.sellerName || 'View profile'}
             </a>
           </div>
         )}

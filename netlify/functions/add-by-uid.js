@@ -163,8 +163,11 @@ exports.handler = async (event, context) => {
       };
     }
 
+    const sellerName = verification.user.name || verification.user.username || null;
+
     const itemData = {
       sellerId: auth.userId,
+      sellerName,
       tornId,
       uid: BigInt(uidNum),
       name,

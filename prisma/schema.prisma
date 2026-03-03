@@ -13,6 +13,7 @@ datasource db {
 model Item {
   id            Int      @id @default(autoincrement())
   sellerId      Int      @default(2827691) // Torn user ID who listed
+  sellerName    String?  // Torn username who listed
   tornId        Int      // Item type ID; not unique (many sellers can list same type)
   uid           BigInt   // Torn instance ID; unique only when isSold=false (partial index)
   name          String
