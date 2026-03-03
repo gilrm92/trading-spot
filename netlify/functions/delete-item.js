@@ -92,16 +92,15 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Mark item as deleted (soft delete)
-    const updatedItem = await prisma.item.update({
-      where: { id: itemId },
-      data: { isDeleted: true }
+    // Permanently delete the item from the database
+    const deletedItem = await prisma.item.delete({
+      where: { id: itemId }
     });
 
     // Convert BigInt to string for JSON serialization
     const serializedItem = {
-      ...updatedItem,
-      uid: updatedItem.uid.toString()
+      ...deletedItem,
+      uid: deletedItem.uid.toString()
     };
 
     return {
