@@ -8,6 +8,7 @@ import { getOrCreateUserId } from '../utils/userId';
 import { WEAPONS } from '../data/weapons';
 import { WEAPON_BONUSES } from '../data/weaponBonuses';
 import { WEAPON_TYPES } from '../data/weaponTypes';
+import { WEAPON_TYPE_MAP } from '../data/weaponTypesMap';
 import './AdminPage.css';
 
 function AdminPage() {
@@ -20,8 +21,8 @@ function AdminPage() {
   const [showAddByUid, setShowAddByUid] = useState(false);
   const [adding, setAdding] = useState(false);
   const [filterSold, setFilterSold] = useState('');
-  const [filterWeapon, setFilterWeapon] = useState('');
   const [filterType, setFilterType] = useState('');
+  const [filterWeapon, setFilterWeapon] = useState('');
   const [filterBonus, setFilterBonus] = useState('');
   const navigate = useNavigate();
 
@@ -131,8 +132,8 @@ function AdminPage() {
   const filteredItems = items.filter((item) => {
     if (filterSold === 'sold' && !item.isSold) return false;
     if (filterSold === 'notSold' && item.isSold) return false;
-    if (filterWeapon && item.name !== filterWeapon) return false;
     if (filterType && item.type !== filterType) return false;
+    if (filterWeapon && item.name !== filterWeapon) return false;
     if (filterBonus) {
       const bonuses = Array.isArray(item.bonuses) ? item.bonuses : [];
       const hasBonus = bonuses.some((b) => b && b.title === filterBonus);
@@ -212,6 +213,25 @@ function AdminPage() {
                         </select>
                       </label>
                       <label className="filter-group">
+                        <span>Type</span>
+                        <select
+                          value={filterType}
+                          onChange={(e) => {
+                            const newType = e.target.value;
+                            setFilterType(newType);
+                            if (newType && filterWeapon && WEAPON_TYPE_MAP[filterWeapon] !== newType) {
+                              setFilterWeapon('');
+                            }
+                          }}
+                          className="filter-select"
+                        >
+                          <option value="">All types</option>
+                          {WEAPON_TYPES.map((t) => (
+                            <option key={t} value={t}>{t}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="filter-group">
                         <span>Weapon</span>
                         <select
                           value={filterWeapon}
@@ -219,21 +239,8 @@ function AdminPage() {
                           className="filter-select"
                         >
                           <option value="">All weapons</option>
-                          {WEAPONS.map((w) => (
+                          {WEAPONS.filter((w) => !filterType || (WEAPON_TYPE_MAP[w] || '') === filterType).map((w) => (
                             <option key={w} value={w}>{w}</option>
-                          ))}
-                        </select>
-                      </label>
-                      <label className="filter-group">
-                        <span>Type</span>
-                        <select
-                          value={filterType}
-                          onChange={(e) => setFilterType(e.target.value)}
-                          className="filter-select"
-                        >
-                          <option value="">All types</option>
-                          {WEAPON_TYPES.map((t) => (
-                            <option key={t} value={t}>{t}</option>
                           ))}
                         </select>
                       </label>

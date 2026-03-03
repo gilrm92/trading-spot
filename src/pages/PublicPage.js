@@ -6,6 +6,7 @@ import { getOrCreateUserId } from '../utils/userId';
 import { WEAPONS } from '../data/weapons';
 import { WEAPON_BONUSES } from '../data/weaponBonuses';
 import { WEAPON_TYPES } from '../data/weaponTypes';
+import { WEAPON_TYPE_MAP } from '../data/weaponTypesMap';
 import './PublicPage.css';
 
 const SORT_OPTIONS = [
@@ -32,8 +33,8 @@ function PublicPage() {
   const [minQuality, setMinQuality] = useState('');
   const [minDamage, setMinDamage] = useState('');
   const [minAccuracy, setMinAccuracy] = useState('');
-  const [weapon, setWeapon] = useState('');
   const [type, setType] = useState('');
+  const [weapon, setWeapon] = useState('');
   const [bonus, setBonus] = useState('');
   const [offset, setOffset] = useState(0);
 
@@ -57,8 +58,8 @@ function PublicPage() {
       if (minQuality !== '') params.minQuality = minQuality;
       if (minDamage !== '') params.minDamage = minDamage;
       if (minAccuracy !== '') params.minAccuracy = minAccuracy;
-      if (weapon) params.weapon = weapon;
       if (type) params.type = type;
+      if (weapon) params.weapon = weapon;
       if (bonus) params.bonus = bonus;
 
       const data = await api.searchItems(params);
@@ -87,7 +88,7 @@ function PublicPage() {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [sort, order, minPrice, maxPrice, minQuality, minDamage, minAccuracy, weapon, type, bonus]);
+  }, [sort, order, minPrice, maxPrice, minQuality, minDamage, minAccuracy, type, weapon, bonus]);
 
   const handleLoadMore = () => {
     loadItems(true, offset);
@@ -213,6 +214,27 @@ function PublicPage() {
                 />
               </label>
               <label className="filter-group">
+                <span>Type</span>
+                <select
+                  value={type}
+                  onChange={(e) => {
+                    const newType = e.target.value;
+                    setType(newType);
+                    if (newType && weapon && WEAPON_TYPE_MAP[weapon] !== newType) {
+                      setWeapon('');
+                    }
+                  }}
+                  className="filter-select"
+                >
+                  <option value="">All types</option>
+                  {WEAPON_TYPES.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="filter-group">
                 <span>Weapon</span>
                 <select
                   value={weapon}
@@ -220,24 +242,9 @@ function PublicPage() {
                   className="filter-select"
                 >
                   <option value="">All weapons</option>
-                  {WEAPONS.map((w) => (
+                  {WEAPONS.filter((w) => !type || (WEAPON_TYPE_MAP[w] || '') === type).map((w) => (
                     <option key={w} value={w}>
                       {w}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="filter-group">
-                <span>Type</span>
-                <select
-                  value={type}
-                  onChange={(e) => setType(e.target.value)}
-                  className="filter-select"
-                >
-                  <option value="">All types</option>
-                  {WEAPON_TYPES.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
                     </option>
                   ))}
                 </select>
