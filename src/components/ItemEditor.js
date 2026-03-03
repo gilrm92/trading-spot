@@ -4,9 +4,6 @@ import './ItemEditor.css';
 function ItemEditor({ item, onSave, onCancel }) {
   const [myDescription, setMyDescription] = useState(item.myDescription || '');
   const [myPrice, setMyPrice] = useState(item.myPrice || '');
-  const [likes, setLikes] = useState(item.likes || 0);
-  const [dislikes, setDislikes] = useState(item.dislikes || 0);
-  const [heatUps, setHeatUps] = useState(item.heatUps || 0);
   const [isSold, setIsSold] = useState(item.isSold || false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -23,15 +20,6 @@ function ItemEditor({ item, onSave, onCancel }) {
       }
       if (myPrice !== (item.myPrice || '')) {
         updates.myPrice = myPrice === '' ? null : parseInt(myPrice);
-      }
-      if (likes !== (item.likes || 0)) {
-        updates.likes = parseInt(likes);
-      }
-      if (dislikes !== (item.dislikes || 0)) {
-        updates.dislikes = parseInt(dislikes);
-      }
-      if (heatUps !== (item.heatUps || 0)) {
-        updates.heatUps = parseInt(heatUps);
       }
       if (isSold !== (item.isSold || false)) {
         updates.isSold = isSold;
@@ -87,42 +75,6 @@ function ItemEditor({ item, onSave, onCancel }) {
               />
               <span>Mark as SOLD</span>
             </label>
-          </div>
-
-          <div className="form-group">
-            <label>Reaction Counts</label>
-            <div className="reaction-counts">
-              <div className="reaction-count-input">
-                <label htmlFor="likes">Likes:</label>
-                <input
-                  type="number"
-                  id="likes"
-                  value={likes}
-                  onChange={(e) => setLikes(e.target.value)}
-                  min="0"
-                />
-              </div>
-              <div className="reaction-count-input">
-                <label htmlFor="dislikes">Dislikes:</label>
-                <input
-                  type="number"
-                  id="dislikes"
-                  value={dislikes}
-                  onChange={(e) => setDislikes(e.target.value)}
-                  min="0"
-                />
-              </div>
-              <div className="reaction-count-input">
-                <label htmlFor="heatUps">Heat Ups:</label>
-                <input
-                  type="number"
-                  id="heatUps"
-                  value={heatUps}
-                  onChange={(e) => setHeatUps(e.target.value)}
-                  min="0"
-                />
-              </div>
-            </div>
           </div>
 
           {error && (

@@ -120,6 +120,19 @@ function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate, onDelete })
             <span className="info-value">{item.quantity}</span>
           </div>
         )}
+        {item.sellerId && (
+          <div className="info-row">
+            <span className="info-label">Sold by:</span>
+            <a
+              href={`https://www.torn.com/profiles.php?XID=${item.sellerId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="info-value seller-link"
+            >
+              View profile
+            </a>
+          </div>
+        )}
       </div>
 
       {(item.damage !== null && item.damage !== undefined) ||

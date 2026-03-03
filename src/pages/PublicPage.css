@@ -214,6 +214,16 @@
   gap: 1.5rem;
 }
 
+.load-more-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.load-more-button {
+  min-width: 120px;
+}
+
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;

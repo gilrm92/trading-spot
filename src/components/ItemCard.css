@@ -94,6 +94,15 @@
   font-weight: 500;
 }
 
+.info-value.seller-link {
+  color: #7db8e8;
+  text-decoration: none;
+}
+
+.info-value.seller-link:hover {
+  text-decoration: underline;
+}
+
 .item-stats {
   padding-top: 0.5rem;
   border-top: 1px solid #333;

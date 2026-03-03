@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import ItemCard from '../components/ItemCard';
 import api from '../services/api';
 import { getOrCreateUserId } from '../utils/userId';
+import { WEAPONS } from '../data/weapons';
+import { WEAPON_BONUSES } from '../data/weaponBonuses';
 import './PublicPage.css';
 
 const SORT_OPTIONS = [
@@ -23,9 +25,13 @@ function useDebounce(value, delay) {
   return debouncedValue;
 }
 
+const PAGE_SIZE = 24;
+
 function PublicPage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState(null);
   const [searchInput, setSearchInput] = useState('');
   const [sort, setSort] = useState('name');
@@ -35,16 +41,26 @@ function PublicPage() {
   const [minQuality, setMinQuality] = useState('');
   const [minDamage, setMinDamage] = useState('');
   const [minAccuracy, setMinAccuracy] = useState('');
+  const [weapon, setWeapon] = useState('');
+  const [bonus, setBonus] = useState('');
+  const [offset, setOffset] = useState(0);
 
   const debouncedSearch = useDebounce(searchInput, 350);
 
-  const loadItems = useCallback(async () => {
+  const loadItems = useCallback(async (append = false, fetchOffset = 0) => {
+    const currentOffset = append ? fetchOffset : 0;
     try {
-      setLoading(true);
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
       setError(null);
       const params = {
         sort,
         order,
+        limit: PAGE_SIZE,
+        offset: currentOffset,
       };
       if (debouncedSearch.trim()) params.q = debouncedSearch.trim();
       if (minPrice !== '') params.minPrice = minPrice;
@@ -52,26 +68,40 @@ function PublicPage() {
       if (minQuality !== '') params.minQuality = minQuality;
       if (minDamage !== '') params.minDamage = minDamage;
       if (minAccuracy !== '') params.minAccuracy = minAccuracy;
+      if (weapon) params.weapon = weapon;
+      if (bonus) params.bonus = bonus;
 
       const data = await api.searchItems(params);
 
       const userId = getOrCreateUserId();
       const itemIds = data.map((item) => item.id);
-      const userReactions = await api.getUserReactions(userId, itemIds);
+      const userReactions = itemIds.length > 0 ? await api.getUserReactions(userId, itemIds) : {};
 
       const itemsWithReactions = data.map((item) => ({
         ...item,
         userReaction: userReactions[item.id] || null,
       }));
 
-      setItems(itemsWithReactions);
+      if (append) {
+        setItems((prev) => [...prev, ...itemsWithReactions]);
+        setOffset(currentOffset + data.length);
+      } else {
+        setItems(itemsWithReactions);
+        setOffset(data.length);
+      }
+      setHasMore(data.length === PAGE_SIZE);
     } catch (err) {
       setError(err.message || 'Failed to load items');
       console.error('Error loading items:', err);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
-  }, [debouncedSearch, sort, order, minPrice, maxPrice, minQuality, minDamage, minAccuracy]);
+  }, [debouncedSearch, sort, order, minPrice, maxPrice, minQuality, minDamage, minAccuracy, weapon, bonus]);
+
+  const handleLoadMore = () => {
+    loadItems(true, offset);
+  };
 
   useEffect(() => {
     loadItems();
@@ -210,6 +240,36 @@ function PublicPage() {
                   className="filter-input"
                 />
               </label>
+              <label className="filter-group">
+                <span>Weapon</span>
+                <select
+                  value={weapon}
+                  onChange={(e) => setWeapon(e.target.value)}
+                  className="filter-select"
+                >
+                  <option value="">All weapons</option>
+                  {WEAPONS.map((w) => (
+                    <option key={w} value={w}>
+                      {w}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="filter-group">
+                <span>Bonus</span>
+                <select
+                  value={bonus}
+                  onChange={(e) => setBonus(e.target.value)}
+                  className="filter-select"
+                >
+                  <option value="">All bonuses</option>
+                  {WEAPON_BONUSES.map((b) => (
+                    <option key={b} value={b}>
+                      {b}
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
           </div>
 
@@ -258,6 +318,18 @@ function PublicPage() {
                       />
                     ))}
                   </div>
+                  {hasMore && items.length > 0 && (
+                    <div className="load-more-container">
+                      <button
+                        type="button"
+                        className="retry-button load-more-button"
+                        onClick={handleLoadMore}
+                        disabled={loadingMore}
+                      >
+                        {loadingMore ? 'Loading...' : 'Load more'}
+                      </button>
+                    </div>
+                  )}
                 </>
               )}
             </>

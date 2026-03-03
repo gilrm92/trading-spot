@@ -1,5 +1,7 @@
 const prisma = require('./_shared/prisma');
 const { getClientIP } = require('./_shared/auth');
+const { Prisma } = require('@prisma/client');
+const { validateGetItemsParams } = require('./_shared/validate');
 
 // Rate limit for public search: 60 requests per minute per IP
 const SEARCH_RATE_LIMIT_WINDOW_MS = 60000;
@@ -69,22 +71,30 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const params = event.queryStringParameters || {};
-    const q = (params.q || '').trim();
-    const sort = params.sort || 'name';
-    const order = (params.order || 'asc').toLowerCase() === 'desc' ? 'desc' : 'asc';
-    const minPrice = params.minPrice != null ? parseInt(params.minPrice, 10) : null;
-    const maxPrice = params.maxPrice != null ? parseInt(params.maxPrice, 10) : null;
-    const minQuality = params.minQuality != null ? parseFloat(params.minQuality) : null;
-    const minDamage = params.minDamage != null ? parseFloat(params.minDamage) : null;
-    const minAccuracy = params.minAccuracy != null ? parseFloat(params.minAccuracy) : null;
-    const limit = Math.min(parseInt(params.limit, 10) || 200, 200);
+    const rawParams = event.queryStringParameters || {};
+    const {
+      q,
+      sort,
+      order,
+      minPrice,
+      maxPrice,
+      minQuality,
+      minDamage,
+      minAccuracy,
+      offset,
+      limit,
+      weapon: validWeapon,
+      bonus: validBonus,
+    } = validateGetItemsParams(rawParams);
 
     const where = {
       isDeleted: false,
       isSold: false,
     };
 
+    if (validWeapon) {
+      where.name = { contains: validWeapon, mode: 'insensitive' };
+    }
     if (q) {
       where.OR = [
         { name: { contains: q, mode: 'insensitive' } },
@@ -106,6 +116,26 @@ exports.handler = async (event, context) => {
       where.accuracy = { gte: minAccuracy };
     }
 
+    if (validBonus) {
+      const bonusIds = await prisma.$queryRaw(
+        Prisma.sql`
+          SELECT id FROM items
+          WHERE "isDeleted" = false AND "isSold" = false
+            AND bonuses IS NOT NULL
+            AND EXISTS (
+              SELECT 1 FROM jsonb_array_elements(bonuses::jsonb) AS elem
+              WHERE elem->>'title' = ${validBonus}
+            )
+        `
+      );
+      const ids = bonusIds.map((r) => r.id);
+      if (ids.length === 0) {
+        where.id = { in: [-1] };
+      } else {
+        where.id = { in: ids };
+      }
+    }
+
     const sortFieldMap = {
       price: 'myPrice',
       quality: 'quality',
@@ -120,6 +150,7 @@ exports.handler = async (event, context) => {
     const items = await prisma.item.findMany({
       where,
       orderBy,
+      skip: offset,
       take: limit,
     });
 

@@ -50,20 +50,16 @@ class ApiService {
     if (params.minQuality != null) sp.set('minQuality', params.minQuality);
     if (params.minDamage != null) sp.set('minDamage', params.minDamage);
     if (params.minAccuracy != null) sp.set('minAccuracy', params.minAccuracy);
+    if (params.weapon != null && params.weapon !== '') sp.set('weapon', params.weapon);
+    if (params.bonus != null && params.bonus !== '') sp.set('bonus', params.bonus);
     if (params.limit != null) sp.set('limit', params.limit);
+    if (params.offset != null) sp.set('offset', params.offset);
     const qs = sp.toString();
     return this.request(`/.netlify/functions/get-items${qs ? `?${qs}` : ''}`);
   }
 
   async getMyItems() {
     return this.request('/.netlify/functions/get-my-items');
-  }
-
-  async createItem(payload) {
-    return this.request('/.netlify/functions/create-item', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
   }
 
   async addByUid(uid, apiKey) {

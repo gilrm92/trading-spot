@@ -1,5 +1,6 @@
 const prisma = require('./_shared/prisma');
 const { requireAuth } = require('./_shared/auth');
+const { validateUpdateItemBody } = require('./_shared/validate');
 
 exports.handler = async (event, context) => {
   // Handle CORS preflight
@@ -65,81 +66,34 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Parse request body
-    const body = JSON.parse(event.body || '{}');
-    const { myDescription, myPrice, likes, dislikes, heatUps, isSold } = body;
-
-    // Validate that at least one field is provided
-    if (myDescription === undefined && myPrice === undefined && 
-        likes === undefined && dislikes === undefined && heatUps === undefined &&
-        isSold === undefined) {
+    // Parse and validate request body
+    let body;
+    try {
+      body = JSON.parse(event.body || '{}');
+    } catch {
       return {
         statusCode: 400,
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*'
         },
-        body: JSON.stringify({ error: 'At least one field must be provided' })
+        body: JSON.stringify({ error: 'Invalid JSON in request body' })
       };
     }
 
-    // Validate myPrice is a number if provided
-    if (myPrice !== undefined && (typeof myPrice !== 'number' || myPrice < 0)) {
+    const validation = validateUpdateItemBody(body);
+    if (!validation.valid) {
       return {
         statusCode: 400,
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*'
         },
-        body: JSON.stringify({ error: 'myPrice must be a non-negative number' })
+        body: JSON.stringify({ error: validation.error })
       };
     }
 
-    // Validate reaction counts are numbers if provided
-    if (likes !== undefined && (typeof likes !== 'number' || likes < 0 || !Number.isInteger(likes))) {
-      return {
-        statusCode: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        },
-        body: JSON.stringify({ error: 'likes must be a non-negative integer' })
-      };
-    }
-
-    if (dislikes !== undefined && (typeof dislikes !== 'number' || dislikes < 0 || !Number.isInteger(dislikes))) {
-      return {
-        statusCode: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        },
-        body: JSON.stringify({ error: 'dislikes must be a non-negative integer' })
-      };
-    }
-
-    if (heatUps !== undefined && (typeof heatUps !== 'number' || heatUps < 0 || !Number.isInteger(heatUps))) {
-      return {
-        statusCode: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        },
-        body: JSON.stringify({ error: 'heatUps must be a non-negative integer' })
-      };
-    }
-
-    // Validate isSold is a boolean if provided
-    if (isSold !== undefined && typeof isSold !== 'boolean') {
-      return {
-        statusCode: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        },
-        body: JSON.stringify({ error: 'isSold must be a boolean' })
-      };
-    }
+    const updateData = validation.data;
 
     // Check if item exists
     const existingItem = await prisma.item.findUnique({
@@ -166,27 +120,6 @@ exports.handler = async (event, context) => {
         },
         body: JSON.stringify({ error: 'You can only edit your own listings' })
       };
-    }
-
-    // Prepare update data
-    const updateData = {};
-    if (myDescription !== undefined) {
-      updateData.myDescription = myDescription === '' ? null : myDescription;
-    }
-    if (myPrice !== undefined) {
-      updateData.myPrice = myPrice === null || myPrice === '' ? null : myPrice;
-    }
-    if (likes !== undefined) {
-      updateData.likes = likes;
-    }
-    if (dislikes !== undefined) {
-      updateData.dislikes = dislikes;
-    }
-    if (heatUps !== undefined) {
-      updateData.heatUps = heatUps;
-    }
-    if (isSold !== undefined) {
-      updateData.isSold = isSold;
     }
 
     // Update item

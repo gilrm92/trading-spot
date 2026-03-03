@@ -14,7 +14,6 @@ function AdminPage() {
   const [error, setError] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
   const [apiKey, setApiKey] = useState('');
-  const [showAddManual, setShowAddManual] = useState(false);
   const [showAddByUid, setShowAddByUid] = useState(false);
   const [adding, setAdding] = useState(false);
   const navigate = useNavigate();
@@ -116,19 +115,12 @@ function AdminPage() {
           <div className="header-content">
             <div>
               <h1>List your items</h1>
-              <p className="subtitle">Manage your listings. Add items manually or by Torn item UID.</p>
+              <p className="subtitle">Manage your listings. Add items by Torn item UID.</p>
             </div>
             <div className="header-actions">
               <Link to="/" className="seller-link back-link">
                 Back to search
               </Link>
-              <button
-                type="button"
-                onClick={() => setShowAddManual(true)}
-                className="sync-button"
-              >
-                Add manually
-              </button>
               <button
                 type="button"
                 onClick={() => setShowAddByUid(true)}
@@ -164,7 +156,7 @@ function AdminPage() {
             <>
               {items.length === 0 ? (
                 <div className="empty-state">
-                  <p>You have not listed any items. Add items manually or by UID above.</p>
+                  <p>You have not listed any items. Add items by UID above.</p>
                 </div>
               ) : (
                 <>
@@ -198,18 +190,6 @@ function AdminPage() {
         />
       )}
 
-      {showAddManual && (
-        <AddManualModal
-          onClose={() => setShowAddManual(false)}
-          onSuccess={() => {
-            setShowAddManual(false);
-            loadItems();
-          }}
-          adding={adding}
-          setAdding={setAdding}
-        />
-      )}
-
       {showAddByUid && (
         <AddByUidModal
           onClose={() => setShowAddByUid(false)}
@@ -222,127 +202,6 @@ function AdminPage() {
           setAdding={setAdding}
         />
       )}
-    </div>
-  );
-}
-
-function AddManualModal({ onClose, onSuccess, adding, setAdding }) {
-  const [name, setName] = useState('');
-  const [type, setType] = useState('');
-  const [quantity, setQuantity] = useState(1);
-  const [marketPrice, setMarketPrice] = useState('');
-  const [myDescription, setMyDescription] = useState('');
-  const [myPrice, setMyPrice] = useState('');
-  const [localError, setLocalError] = useState(null);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLocalError(null);
-    if (!name.trim() || !type.trim()) {
-      setLocalError('Name and type are required');
-      return;
-    }
-    setAdding(true);
-    try {
-      const res = await api.createItem({
-        name: name.trim(),
-        type: type.trim(),
-        quantity: parseInt(quantity, 10) || 1,
-        marketPrice: parseInt(marketPrice, 10) || 0,
-        myDescription: myDescription.trim() || undefined,
-        myPrice: myPrice === '' ? undefined : parseInt(myPrice, 10),
-      });
-      if (res && res.item) onSuccess();
-    } catch (err) {
-      setLocalError(err.message || 'Failed to create item');
-    } finally {
-      setAdding(false);
-    }
-  };
-
-  return (
-    <div className="item-editor-overlay">
-      <div className="item-editor-modal">
-        <div className="item-editor-header">
-          <h2>Add item manually</h2>
-          <button type="button" className="close-button" onClick={onClose}>
-            ×
-          </button>
-        </div>
-        <form onSubmit={handleSubmit} className="item-editor-form">
-          <div className="form-group">
-            <label htmlFor="name">Name *</label>
-            <input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Item name"
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="type">Type *</label>
-            <input
-              id="type"
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-              placeholder="e.g. Weapon"
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="quantity">Quantity</label>
-            <input
-              type="number"
-              id="quantity"
-              min="1"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="marketPrice">Market price</label>
-            <input
-              type="number"
-              id="marketPrice"
-              min="0"
-              value={marketPrice}
-              onChange={(e) => setMarketPrice(e.target.value)}
-              placeholder="0"
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="myPrice">Your price (buyout)</label>
-            <input
-              type="number"
-              id="myPrice"
-              min="0"
-              value={myPrice}
-              onChange={(e) => setMyPrice(e.target.value)}
-              placeholder="Optional"
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="myDescription">Description</label>
-            <textarea
-              id="myDescription"
-              value={myDescription}
-              onChange={(e) => setMyDescription(e.target.value)}
-              placeholder="Optional"
-              rows={3}
-            />
-          </div>
-          {localError && <div className="error-message">{localError}</div>}
-          <div className="form-actions">
-            <button type="button" onClick={onClose} className="cancel-button" disabled={adding}>
-              Cancel
-            </button>
-            <button type="submit" className="save-button" disabled={adding}>
-              {adding ? 'Adding...' : 'Add item'}
-            </button>
-          </div>
-        </form>
-      </div>
     </div>
   );
 }
