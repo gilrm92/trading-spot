@@ -120,7 +120,7 @@ function PublicPage() {
           </div>
           <div className="header-content">
             <p className="header-message">
-              Filter items by weapon, type, bonus, price, quality, damage, and accuracy.
+              This is a space to list and search for RW Weapons without risks. Send a message to CrowleyJr if you have any questions.
             </p>
           </div>
         </div>
