@@ -120,7 +120,7 @@ exports.handler = async (event, context) => {
 
     const name = itemDetails.name || 'Unknown';
     const type = itemDetails.type || 'Unknown';
-    const quantity = itemDetails.quantity != null ? itemDetails.quantity : 1;
+    const quantity = 1;
     const circulation = itemDetails.circulation != null ? itemDetails.circulation : 0;
     const marketPrice =
       itemDetails.market_price != null
@@ -129,8 +129,8 @@ exports.handler = async (event, context) => {
           ? itemDetails.market_value
           : 0;
 
-    const existing = await prisma.item.findUnique({
-      where: { uid: BigInt(uidNum) },
+    const existing = await prisma.item.findFirst({
+      where: { uid: BigInt(uidNum), isSold: false },
     });
     if (existing) {
       return {

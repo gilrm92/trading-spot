@@ -114,12 +114,6 @@ function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate, onDelete })
             <span className="info-value">${formatPrice(item.myPrice)}</span>
           </div>
         )}
-        {item.quantity > 0 && (
-          <div className="info-row">
-            <span className="info-label">Quantity:</span>
-            <span className="info-value">{item.quantity}</span>
-          </div>
-        )}
         {item.sellerId && (
           <div className="info-row">
             <span className="info-label">Sold by:</span>

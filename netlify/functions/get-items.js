@@ -73,7 +73,6 @@ exports.handler = async (event, context) => {
   try {
     const rawParams = event.queryStringParameters || {};
     const {
-      q,
       sort,
       order,
       minPrice,
@@ -85,6 +84,7 @@ exports.handler = async (event, context) => {
       limit,
       weapon: validWeapon,
       bonus: validBonus,
+      type: validType,
     } = validateGetItemsParams(rawParams);
 
     const where = {
@@ -95,11 +95,8 @@ exports.handler = async (event, context) => {
     if (validWeapon) {
       where.name = { contains: validWeapon, mode: 'insensitive' };
     }
-    if (q) {
-      where.OR = [
-        { name: { contains: q, mode: 'insensitive' } },
-        { type: { contains: q, mode: 'insensitive' } },
-      ];
+    if (validType) {
+      where.type = { equals: validType, mode: 'insensitive' };
     }
     if ((minPrice != null && !isNaN(minPrice)) || (maxPrice != null && !isNaN(maxPrice))) {
       where.myPrice = {};

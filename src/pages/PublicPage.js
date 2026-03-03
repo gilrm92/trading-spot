@@ -5,6 +5,7 @@ import api from '../services/api';
 import { getOrCreateUserId } from '../utils/userId';
 import { WEAPONS } from '../data/weapons';
 import { WEAPON_BONUSES } from '../data/weaponBonuses';
+import { WEAPON_TYPES } from '../data/weaponTypes';
 import './PublicPage.css';
 
 const SORT_OPTIONS = [
@@ -16,15 +17,6 @@ const SORT_OPTIONS = [
   { value: 'createdAt', label: 'Date listed' },
 ];
 
-function useDebounce(value, delay) {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedValue(value), delay);
-    return () => clearTimeout(t);
-  }, [value, delay]);
-  return debouncedValue;
-}
-
 const PAGE_SIZE = 24;
 
 function PublicPage() {
@@ -33,7 +25,6 @@ function PublicPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState(null);
-  const [searchInput, setSearchInput] = useState('');
   const [sort, setSort] = useState('name');
   const [order, setOrder] = useState('asc');
   const [minPrice, setMinPrice] = useState('');
@@ -42,10 +33,9 @@ function PublicPage() {
   const [minDamage, setMinDamage] = useState('');
   const [minAccuracy, setMinAccuracy] = useState('');
   const [weapon, setWeapon] = useState('');
+  const [type, setType] = useState('');
   const [bonus, setBonus] = useState('');
   const [offset, setOffset] = useState(0);
-
-  const debouncedSearch = useDebounce(searchInput, 350);
 
   const loadItems = useCallback(async (append = false, fetchOffset = 0) => {
     const currentOffset = append ? fetchOffset : 0;
@@ -62,13 +52,13 @@ function PublicPage() {
         limit: PAGE_SIZE,
         offset: currentOffset,
       };
-      if (debouncedSearch.trim()) params.q = debouncedSearch.trim();
       if (minPrice !== '') params.minPrice = minPrice;
       if (maxPrice !== '') params.maxPrice = maxPrice;
       if (minQuality !== '') params.minQuality = minQuality;
       if (minDamage !== '') params.minDamage = minDamage;
       if (minAccuracy !== '') params.minAccuracy = minAccuracy;
       if (weapon) params.weapon = weapon;
+      if (type) params.type = type;
       if (bonus) params.bonus = bonus;
 
       const data = await api.searchItems(params);
@@ -97,7 +87,7 @@ function PublicPage() {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [debouncedSearch, sort, order, minPrice, maxPrice, minQuality, minDamage, minAccuracy, weapon, bonus]);
+  }, [sort, order, minPrice, maxPrice, minQuality, minDamage, minAccuracy, weapon, type, bonus]);
 
   const handleLoadMore = () => {
     loadItems(true, offset);
@@ -129,7 +119,7 @@ function PublicPage() {
           </div>
           <div className="header-content">
             <p className="header-message">
-              Search items listed by sellers. Filter by price, quality, damage, and accuracy.
+              Filter items by weapon, type, bonus, price, quality, damage, and accuracy.
             </p>
           </div>
         </div>
@@ -138,24 +128,6 @@ function PublicPage() {
       <main className="page-content">
         <div className="container">
           <div className="search-toolbar">
-            <div className="search-row">
-              <input
-                type="text"
-                className="search-input"
-                placeholder="Search by name or type..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                aria-label="Search items"
-              />
-              <button
-                type="button"
-                className="retry-button"
-                onClick={loadItems}
-                disabled={loading}
-              >
-                {loading ? 'Loading...' : 'Search'}
-              </button>
-            </div>
             <div className="filters-row">
               <label className="filter-group">
                 <span>Sort by</span>
@@ -256,6 +228,21 @@ function PublicPage() {
                 </select>
               </label>
               <label className="filter-group">
+                <span>Type</span>
+                <select
+                  value={type}
+                  onChange={(e) => setType(e.target.value)}
+                  className="filter-select"
+                >
+                  <option value="">All types</option>
+                  {WEAPON_TYPES.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="filter-group">
                 <span>Bonus</span>
                 <select
                   value={bonus}
@@ -292,12 +279,29 @@ function PublicPage() {
           {!initialLoad && !error && (
             <>
               {items.length === 0 ? (
-                <div className="empty-state">
-                  <p>No items match your search. Try different filters or list your own.</p>
-                  <Link to="/list" className="seller-link">
-                    List your items
-                  </Link>
-                </div>
+                (() => {
+                  const hasActiveFilters =
+                    weapon ||
+                    type ||
+                    bonus ||
+                    minPrice !== '' ||
+                    maxPrice !== '' ||
+                    minQuality !== '' ||
+                    minDamage !== '' ||
+                    minAccuracy !== '';
+                  return hasActiveFilters ? (
+                    <div className="empty-state">
+                      <p>No items match your filters. Try different filters.</p>
+                    </div>
+                  ) : (
+                    <div className="empty-state">
+                      <p>No items listed yet. List your items to get started.</p>
+                      <Link to="/list" className="seller-link">
+                        List your items
+                      </Link>
+                    </div>
+                  );
+                })()
               ) : (
                 <>
                   <div className="items-header">

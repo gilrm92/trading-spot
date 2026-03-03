@@ -23,6 +23,7 @@ class ApiService {
 
       if (!response.ok) {
         const error = new Error(data.error || data.message || `HTTP error! status: ${response.status}`);
+        error.status = response.status;
         if (data.waitTime) {
           error.waitTime = data.waitTime;
         }
@@ -42,7 +43,6 @@ class ApiService {
 
   async searchItems(params = {}) {
     const sp = new URLSearchParams();
-    if (params.q != null && params.q !== '') sp.set('q', params.q);
     if (params.sort != null) sp.set('sort', params.sort);
     if (params.order != null) sp.set('order', params.order);
     if (params.minPrice != null) sp.set('minPrice', params.minPrice);
@@ -52,6 +52,7 @@ class ApiService {
     if (params.minAccuracy != null) sp.set('minAccuracy', params.minAccuracy);
     if (params.weapon != null && params.weapon !== '') sp.set('weapon', params.weapon);
     if (params.bonus != null && params.bonus !== '') sp.set('bonus', params.bonus);
+    if (params.type != null && params.type !== '') sp.set('type', params.type);
     if (params.limit != null) sp.set('limit', params.limit);
     if (params.offset != null) sp.set('offset', params.offset);
     const qs = sp.toString();

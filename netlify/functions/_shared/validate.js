@@ -5,6 +5,7 @@
 
 const WEAPONS = require('./weapons');
 const WEAPON_BONUSES = require('./weaponBonuses');
+const WEAPON_TYPES = require('./weaponTypes');
 
 const SORT_WHITELIST = ['name', 'price', 'quality', 'damage', 'accuracy', 'createdAt'];
 const ORDER_WHITELIST = ['asc', 'desc'];
@@ -50,7 +51,6 @@ function parseFloatSafe(val, defaultVal = 0, opts = {}) {
  * Returns sanitized params object.
  */
 function validateGetItemsParams(params = {}) {
-  const q = trimString(params.q);
   const sort = whitelist(params.sort, SORT_WHITELIST) || 'name';
   const order = whitelist(params.order, ORDER_WHITELIST) || 'asc';
   const minPrice = parseFloatSafe(params.minPrice, null, { min: 0, max: PRICE_BOUND });
@@ -63,11 +63,12 @@ function validateGetItemsParams(params = {}) {
 
   const weaponRaw = (params.weapon || '').trim();
   const bonusRaw = (params.bonus || '').trim();
+  const typeRaw = (params.type || '').trim();
   const weapon = weaponRaw && WEAPONS.includes(weaponRaw) ? weaponRaw : '';
   const bonus = bonusRaw && WEAPON_BONUSES.includes(bonusRaw) ? bonusRaw : '';
+  const type = typeRaw && WEAPON_TYPES.includes(typeRaw) ? typeRaw : '';
 
   return {
-    q,
     sort,
     order,
     minPrice: minPrice != null && !isNaN(minPrice) ? minPrice : null,
@@ -79,6 +80,7 @@ function validateGetItemsParams(params = {}) {
     limit,
     weapon,
     bonus,
+    type,
   };
 }
 

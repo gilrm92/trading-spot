@@ -138,7 +138,7 @@ exports.handler = async (event, context) => {
           name: item.name,
           type: item.type,
           subType: itemDetails.sub_type || null,
-          quantity: item.quantity,
+          quantity: 1,
           circulation: item.circulation,
           marketPrice: item.market_price,
           damage: stats.damage || null,
@@ -151,8 +151,8 @@ exports.handler = async (event, context) => {
         };
 
         // Upsert item (create or update)
-        const existingItem = await prisma.item.findUnique({
-          where: { uid: BigInt(item.UID) }
+        const existingItem = await prisma.item.findFirst({
+          where: { uid: BigInt(item.UID), sellerId: auth.userId },
         });
 
         if (existingItem) {
@@ -173,7 +173,7 @@ exports.handler = async (event, context) => {
           };
           
           await prisma.item.update({
-            where: { uid: BigInt(item.UID) },
+            where: { id: existingItem.id },
             data: updateData
           });
           updated++;

@@ -90,6 +90,42 @@
   background: #555;
 }
 
+.admin-filters {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #2a2a2a;
+  border-radius: 8px;
+  border: 1px solid #333;
+}
+
+.admin-filters .filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.admin-filters .filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.admin-filters .filter-group span {
+  font-size: 0.8rem;
+  color: #aaa;
+}
+
+.admin-filters .filter-select {
+  padding: 0.5rem 0.75rem;
+  background: #1a1a1a;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #e0e0e0;
+  font-size: 0.9rem;
+  min-width: 140px;
+}
+
 .admin-content {
   padding: 2rem 0;
 }

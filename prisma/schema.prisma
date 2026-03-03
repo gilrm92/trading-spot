@@ -14,7 +14,7 @@ model Item {
   id            Int      @id @default(autoincrement())
   sellerId      Int      @default(2827691) // Torn user ID who listed
   tornId        Int      // Item type ID; not unique (many sellers can list same type)
-  uid           BigInt   @unique // Torn instance ID or synthetic for manual items
+  uid           BigInt   // Torn instance ID; unique only when isSold=false (partial index)
   name          String
   type          String
   subType       String?

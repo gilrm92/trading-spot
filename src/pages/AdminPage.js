@@ -5,6 +5,9 @@ import ItemCard from '../components/ItemCard';
 import ItemEditor from '../components/ItemEditor';
 import api from '../services/api';
 import { getOrCreateUserId } from '../utils/userId';
+import { WEAPONS } from '../data/weapons';
+import { WEAPON_BONUSES } from '../data/weaponBonuses';
+import { WEAPON_TYPES } from '../data/weaponTypes';
 import './AdminPage.css';
 
 function AdminPage() {
@@ -16,7 +19,21 @@ function AdminPage() {
   const [apiKey, setApiKey] = useState('');
   const [showAddByUid, setShowAddByUid] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [filterSold, setFilterSold] = useState('');
+  const [filterWeapon, setFilterWeapon] = useState('');
+  const [filterType, setFilterType] = useState('');
+  const [filterBonus, setFilterBonus] = useState('');
   const navigate = useNavigate();
+
+  const resetAuth = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('apiKey');
+    setIsAuthenticated(false);
+    setApiKey('');
+    setItems([]);
+    setError(null);
+    navigate('/');
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
@@ -43,12 +60,7 @@ function AdminPage() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('apiKey');
-    setIsAuthenticated(false);
-    setApiKey('');
-    setItems([]);
-    navigate('/');
+    resetAuth();
   };
 
   const loadItems = async () => {
@@ -65,6 +77,10 @@ function AdminPage() {
       }));
       setItems(itemsWithReactions);
     } catch (err) {
+      if (err.status === 401) {
+        resetAuth();
+        return;
+      }
       setError(err.message || 'Failed to load your items');
       console.error('Error loading items:', err);
     } finally {
@@ -88,6 +104,10 @@ function AdminPage() {
       setEditingItem(null);
       await loadItems();
     } catch (err) {
+      if (err.status === 401) {
+        resetAuth();
+        return;
+      }
       throw err;
     }
   };
@@ -99,10 +119,27 @@ function AdminPage() {
       await api.deleteItem(itemId);
       await loadItems();
     } catch (err) {
+      if (err.status === 401) {
+        resetAuth();
+        return;
+      }
       setError(err.message || 'Failed to delete item');
       console.error('Error deleting item:', err);
     }
   };
+
+  const filteredItems = items.filter((item) => {
+    if (filterSold === 'sold' && !item.isSold) return false;
+    if (filterSold === 'notSold' && item.isSold) return false;
+    if (filterWeapon && item.name !== filterWeapon) return false;
+    if (filterType && item.type !== filterType) return false;
+    if (filterBonus) {
+      const bonuses = Array.isArray(item.bonuses) ? item.bonuses : [];
+      const hasBonus = bonuses.some((b) => b && b.title === filterBonus);
+      if (!hasBonus) return false;
+    }
+    return true;
+  });
 
   if (!isAuthenticated) {
     return <LoginForm onLogin={handleLogin} />;
@@ -160,11 +197,66 @@ function AdminPage() {
                 </div>
               ) : (
                 <>
+                  <div className="admin-filters">
+                    <div className="filters-row">
+                      <label className="filter-group">
+                        <span>Sold</span>
+                        <select
+                          value={filterSold}
+                          onChange={(e) => setFilterSold(e.target.value)}
+                          className="filter-select"
+                        >
+                          <option value="">All</option>
+                          <option value="sold">Sold</option>
+                          <option value="notSold">Not sold</option>
+                        </select>
+                      </label>
+                      <label className="filter-group">
+                        <span>Weapon</span>
+                        <select
+                          value={filterWeapon}
+                          onChange={(e) => setFilterWeapon(e.target.value)}
+                          className="filter-select"
+                        >
+                          <option value="">All weapons</option>
+                          {WEAPONS.map((w) => (
+                            <option key={w} value={w}>{w}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="filter-group">
+                        <span>Type</span>
+                        <select
+                          value={filterType}
+                          onChange={(e) => setFilterType(e.target.value)}
+                          className="filter-select"
+                        >
+                          <option value="">All types</option>
+                          {WEAPON_TYPES.map((t) => (
+                            <option key={t} value={t}>{t}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="filter-group">
+                        <span>Bonus</span>
+                        <select
+                          value={filterBonus}
+                          onChange={(e) => setFilterBonus(e.target.value)}
+                          className="filter-select"
+                        >
+                          <option value="">All bonuses</option>
+                          {WEAPON_BONUSES.map((b) => (
+                            <option key={b} value={b}>{b}</option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                  </div>
                   <div className="items-header">
-                    <h2>Your items ({items.length})</h2>
+                    <h2>Your items ({filteredItems.length}{items.length !== filteredItems.length ? ` of ${items.length}` : ''})</h2>
                   </div>
                   <div className="items-grid">
-                    {items.map((item) => (
+                    {filteredItems.map((item) => (
                       <ItemCard
                         key={item.id}
                         item={item}
