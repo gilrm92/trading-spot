@@ -1,5 +1,6 @@
 const prisma = require('./_shared/prisma');
 const { requireAuth, verifyTornAPIKey } = require('./_shared/auth');
+const WEAPONS = require('./_shared/weapons');
 const ALLOWED_WEAPON_TYPES = ['Primary', 'Secondary', 'Melee'];
 const ALLOWED_RARITIES = ['yellow', 'orange', 'red'];
 
@@ -42,6 +43,12 @@ exports.handler = async (event, context) => {
     const body = JSON.parse(event.body || '{}');
     const { uid: uidParam, apiKey } = body;
 
+    console.log('[add-by-uid] Request', {
+      userId: auth.userId,
+      uid: uidParam,
+      hasApiKey: !!(apiKey && typeof apiKey === 'string' && apiKey.trim()),
+    });
+
     if (!apiKey || typeof apiKey !== 'string' || !apiKey.trim()) {
       return {
         statusCode: 400,
@@ -79,6 +86,10 @@ exports.handler = async (event, context) => {
       `https://api.torn.com/v2/torn/${uidNum}/itemdetails?key=${encodeURIComponent(apiKey.trim())}`
     );
     if (!detailsResponse.ok) {
+      console.log('[add-by-uid] Torn API itemdetails failed', {
+        uid: uidNum,
+        status: detailsResponse.status,
+      });
       return {
         statusCode: 400,
         headers: corsHeaders,
@@ -88,6 +99,10 @@ exports.handler = async (event, context) => {
 
     const detailsData = await detailsResponse.json();
     if (detailsData.error) {
+      console.log('[add-by-uid] Torn API error', {
+        uid: uidNum,
+        error: detailsData.error,
+      });
       return {
         statusCode: 400,
         headers: corsHeaders,
@@ -98,7 +113,10 @@ exports.handler = async (event, context) => {
     }
 
     const itemDetails = detailsData.itemdetails || {};
+    // Stats may be at itemDetails.stats or at top level (API structure varies)
     const stats = itemDetails.stats || {};
+    const getStat = (key) =>
+      stats[key] != null ? stats[key] : itemDetails[key];
     const bonuses = Array.isArray(itemDetails.bonuses) ? itemDetails.bonuses : [];
     const tornId = itemDetails.id != null ? itemDetails.id : itemDetails.tornId != null ? itemDetails.tornId : 0;
 
@@ -121,19 +139,43 @@ exports.handler = async (event, context) => {
     }
 
     const name = itemDetails.name || 'Unknown';
-    const type = itemDetails.type || 'Unknown';
+    const type = (itemDetails.type || '').trim();
     const rarity = (itemDetails.rarity || '').trim().toLowerCase();
 
-    const isWeapon = ALLOWED_WEAPON_TYPES.includes(type);
+    console.log('[add-by-uid] Item details', {
+      uid: uidNum,
+      name,
+      type: type || '(empty)',
+      rarity: rarity || '(empty)',
+      tornId,
+    });
+
+    // Check if weapon: type (case-insensitive) or name in weapons list
+    const matchedType = ALLOWED_WEAPON_TYPES.find(
+      (t) => t.toLowerCase() === type.toLowerCase()
+    );
+    const nameMatch = WEAPONS.includes(name);
+
+    const isWeapon = matchedType || nameMatch;
     if (!isWeapon) {
+      console.log('[add-by-uid] Rejected: not a weapon', {
+        uid: uidNum,
+        name,
+        type,
+        nameMatch,
+        matchedType: !!matchedType,
+      });
       return {
         statusCode: 400,
         headers: corsHeaders,
-        body: JSON.stringify({ error: 'Only weapons can be listed. This item is not a weapon.' }),
+        body: JSON.stringify({
+          error: `Only weapons can be listed. This item is not a weapon (type: "${type || 'unknown'}").`,
+        }),
       };
     }
 
     if (!ALLOWED_RARITIES.includes(rarity)) {
+      console.log('[add-by-uid] Rejected: invalid rarity', { uid: uidNum, name, rarity });
       return {
         statusCode: 400,
         headers: corsHeaders,
@@ -154,16 +196,29 @@ exports.handler = async (event, context) => {
 
     const existing = await prisma.item.findFirst({
       where: { uid: BigInt(uidNum), isSold: false },
+      select: { id: true, sellerId: true, sellerName: true },
     });
     if (existing) {
+      const isOwn = String(existing.sellerId) === String(auth.userId);
+      console.log('[add-by-uid] Rejected: already listed', {
+        uid: uidNum,
+        existingSellerId: existing.sellerId,
+        existingSellerName: existing.sellerName,
+        isOwn,
+      });
+      const msg = isOwn
+        ? 'This item is already listed by you.'
+        : `This item is already listed by ${existing.sellerName || 'another user'}.`;
       return {
         statusCode: 400,
         headers: corsHeaders,
-        body: JSON.stringify({ error: 'This item is already listed' }),
+        body: JSON.stringify({ error: msg }),
       };
     }
 
     const sellerName = verification.user.name || verification.user.username || null;
+    // Normalize type to proper casing when we have a match
+    const normalizedType = matchedType || type || 'Unknown';
 
     const itemData = {
       sellerId: auth.userId,
@@ -171,15 +226,15 @@ exports.handler = async (event, context) => {
       tornId,
       uid: BigInt(uidNum),
       name,
-      type,
+      type: normalizedType,
       subType: itemDetails.sub_type || null,
       quantity,
       circulation,
       marketPrice,
-      damage: stats.damage != null ? stats.damage : null,
-      accuracy: stats.accuracy != null ? stats.accuracy : null,
-      armor: stats.armor != null ? stats.armor : null,
-      quality: stats.quality != null ? stats.quality : null,
+      damage: getStat('damage') != null ? getStat('damage') : null,
+      accuracy: getStat('accuracy') != null ? getStat('accuracy') : null,
+      armor: getStat('armor') != null ? getStat('armor') : null,
+      quality: getStat('quality') != null ? getStat('quality') : null,
       bonuses: bonuses.length > 0 ? bonuses : null,
       rarity: itemDetails.rarity || null,
       image: imageUrl,
@@ -191,6 +246,14 @@ exports.handler = async (event, context) => {
 
     const created = await prisma.item.create({
       data: itemData,
+    });
+
+    console.log('[add-by-uid] Created', {
+      itemId: created.id,
+      uid: uidNum,
+      name: created.name,
+      type: created.type,
+      sellerId: created.sellerId,
     });
 
     const serialized = {
