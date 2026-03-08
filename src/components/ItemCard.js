@@ -27,16 +27,16 @@ function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate, onDelete })
     return colors[rarity] || '#888';
   };
 
-  const getCardBackgroundColor = (rarity) => {
+  const getImageContainerBackground = (rarity) => {
     const r = rarity?.toLowerCase();
-    if (r === 'yellow') return 'rgb(254, 255, 196)';
-    if (r === 'red') return 'rgb(234, 207, 209)';
-    if (r === 'orange' || r === 'blue' || r === 'green' || r === 'purple') return 'rgb(233, 218, 198)';
+    // rgba with ~0.5 alpha for subtle transparency
+    if (r === 'yellow') return 'rgba(254, 255, 196, 0.5)';
+    if (r === 'red') return 'rgba(234, 207, 209, 0.5)';
+    if (r === 'orange' || r === 'blue' || r === 'green' || r === 'purple') return 'rgba(233, 218, 198, 0.5)';
     return null;
   };
 
-  const cardBg = getCardBackgroundColor(item.rarity);
-  const hasLightBg = !!cardBg;
+  const imageContainerBg = getImageContainerBackground(item.rarity);
 
   async function handleReaction(reaction) {
     if (reacting) return;
@@ -67,10 +67,7 @@ function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate, onDelete })
   const isSold = item.isSold || false;
 
   return (
-    <div
-      className={`item-card ${isSold ? 'item-sold' : ''} ${hasLightBg ? 'item-card-light' : ''}`}
-      style={cardBg ? { background: cardBg, borderColor: 'rgba(0,0,0,0.15)' } : undefined}
-    >
+    <div className={`item-card ${isSold ? 'item-sold' : ''}`}>
       <div className="item-header">
         <h3 className="item-name">{item.name}</h3>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
@@ -99,7 +96,10 @@ function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate, onDelete })
       </div>
 
       {item.image && (
-        <div className="item-image-container">
+        <div
+          className="item-image-container"
+          style={imageContainerBg ? { background: imageContainerBg, borderColor: 'rgba(255,255,255,0.15)' } : undefined}
+        >
           <img 
             src={item.image} 
             alt={item.name}
