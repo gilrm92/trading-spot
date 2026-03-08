@@ -26,6 +26,63 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
+/* Light background variant - adjust text for readability */
+.item-card.item-card-light .item-name,
+.item-card.item-card-light .info-value,
+.item-card.item-card-light .stat-value,
+.item-card.item-card-light .bonus-title {
+  color: #333;
+}
+
+.item-card.item-card-light .info-value.seller-link {
+  color: #1a5f8a;
+}
+
+.item-card.item-card-light .info-label,
+.item-card.item-card-light .stats-title,
+.item-card.item-card-light .bonuses-title,
+.item-card.item-card-light .stat-label,
+.item-card.item-card-light .bonus-description,
+.item-card.item-card-light .bonus-value,
+.item-card.item-card-light .item-description p {
+  color: #555;
+}
+
+.item-card.item-card-light .item-image-container {
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+.item-card.item-card-light .info-row.highlight {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+.item-card.item-card-light .bonus-item {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.12);
+  border-left-color: #888;
+}
+
+.item-card.item-card-light .item-stats,
+.item-card.item-card-light .item-bonuses,
+.item-card.item-card-light .item-description,
+.item-card.item-card-light .item-reactions {
+  border-top-color: rgba(0, 0, 0, 0.15);
+}
+
+.item-card.item-card-light .reaction-button {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.15);
+  color: #555;
+}
+
+.item-card.item-card-light .reaction-button:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.12);
+  border-color: rgba(0, 0, 0, 0.2);
+  color: #333;
+}
+
 .item-header {
   display: flex;
   justify-content: space-between;

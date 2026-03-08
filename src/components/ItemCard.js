@@ -27,6 +27,17 @@ function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate, onDelete })
     return colors[rarity] || '#888';
   };
 
+  const getCardBackgroundColor = (rarity) => {
+    const r = rarity?.toLowerCase();
+    if (r === 'yellow') return 'rgb(254, 255, 196)';
+    if (r === 'red') return 'rgb(234, 207, 209)';
+    if (r === 'orange' || r === 'blue' || r === 'green' || r === 'purple') return 'rgb(233, 218, 198)';
+    return null;
+  };
+
+  const cardBg = getCardBackgroundColor(item.rarity);
+  const hasLightBg = !!cardBg;
+
   async function handleReaction(reaction) {
     if (reacting) return;
     
@@ -56,7 +67,10 @@ function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate, onDelete })
   const isSold = item.isSold || false;
 
   return (
-    <div className={`item-card ${isSold ? 'item-sold' : ''}`}>
+    <div
+      className={`item-card ${isSold ? 'item-sold' : ''} ${hasLightBg ? 'item-card-light' : ''}`}
+      style={cardBg ? { background: cardBg, borderColor: 'rgba(0,0,0,0.15)' } : undefined}
+    >
       <div className="item-header">
         <h3 className="item-name">{item.name}</h3>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
