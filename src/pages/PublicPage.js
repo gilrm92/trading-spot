@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import ItemCard from '../components/ItemCard';
 import api from '../services/api';
 import { getOrCreateUserId } from '../utils/userId';
@@ -36,6 +36,8 @@ function PublicPage() {
   const [type, setType] = useState('');
   const [weapon, setWeapon] = useState('');
   const [bonus, setBonus] = useState('');
+  const [searchParams] = useSearchParams();
+  const [seller, setSeller] = useState(() => searchParams.get('seller') || '');
   const [offset, setOffset] = useState(0);
 
   const loadItems = useCallback(async (append = false, fetchOffset = 0) => {
@@ -61,6 +63,7 @@ function PublicPage() {
       if (type) params.type = type;
       if (weapon) params.weapon = weapon;
       if (bonus) params.bonus = bonus;
+      if (seller) params.seller = seller;
 
       const data = await api.searchItems(params);
 
@@ -88,11 +91,17 @@ function PublicPage() {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [sort, order, minPrice, maxPrice, minQuality, minDamage, minAccuracy, type, weapon, bonus]);
+  }, [sort, order, minPrice, maxPrice, minQuality, minDamage, minAccuracy, type, weapon, bonus, seller]);
 
   const handleLoadMore = () => {
     loadItems(true, offset);
   };
+
+  // Sync seller from URL when it changes (e.g. user opens share link)
+  useEffect(() => {
+    const sellerFromUrl = searchParams.get('seller') || '';
+    setSeller(sellerFromUrl);
+  }, [searchParams]);
 
   useEffect(() => {
     loadItems();
@@ -264,6 +273,16 @@ function PublicPage() {
                   ))}
                 </select>
               </label>
+              <label className="filter-group">
+                <span>Seller</span>
+                <input
+                  type="text"
+                  placeholder="Torn username"
+                  value={seller}
+                  onChange={(e) => setSeller(e.target.value)}
+                  className="filter-input"
+                />
+              </label>
             </div>
           </div>
 
@@ -291,6 +310,7 @@ function PublicPage() {
                     weapon ||
                     type ||
                     bonus ||
+                    seller ||
                     minPrice !== '' ||
                     maxPrice !== '' ||
                     minQuality !== '' ||

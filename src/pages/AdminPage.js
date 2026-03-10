@@ -159,6 +159,16 @@ function AdminPage() {
               <Link to="/" className="seller-link back-link">
                 Back to search
               </Link>
+              {items.length > 0 && items[0].sellerName && (
+                <a
+                  href={`${window.location.origin}/?seller=${encodeURIComponent(items[0].sellerName)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="share-link-button"
+                >
+                  Share my list
+                </a>
+              )}
               <button
                 type="button"
                 onClick={() => setShowAddByUid(true)}

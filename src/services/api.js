@@ -53,6 +53,7 @@ class ApiService {
     if (params.weapon != null && params.weapon !== '') sp.set('weapon', params.weapon);
     if (params.bonus != null && params.bonus !== '') sp.set('bonus', params.bonus);
     if (params.type != null && params.type !== '') sp.set('type', params.type);
+    if (params.seller != null && params.seller !== '') sp.set('seller', params.seller);
     if (params.limit != null) sp.set('limit', params.limit);
     if (params.offset != null) sp.set('offset', params.offset);
     const qs = sp.toString();

@@ -85,6 +85,7 @@ exports.handler = async (event, context) => {
       weapon: validWeapon,
       bonus: validBonus,
       type: validType,
+      seller: validSeller,
     } = validateGetItemsParams(rawParams);
 
     const where = {
@@ -111,6 +112,9 @@ exports.handler = async (event, context) => {
     }
     if (minAccuracy != null && !isNaN(minAccuracy)) {
       where.accuracy = { gte: minAccuracy };
+    }
+    if (validSeller) {
+      where.sellerName = { equals: validSeller, mode: 'insensitive' };
     }
 
     if (validBonus) {

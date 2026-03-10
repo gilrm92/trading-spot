@@ -68,6 +68,10 @@ function validateGetItemsParams(params = {}) {
   const bonus = bonusRaw && WEAPON_BONUSES.includes(bonusRaw) ? bonusRaw : '';
   const type = typeRaw && WEAPON_TYPES.includes(typeRaw) ? typeRaw : '';
 
+  // seller: filter by seller name (case-insensitive, max 100 chars)
+  const sellerRaw = (params.seller || '').trim();
+  const seller = sellerRaw.length > 0 && sellerRaw.length <= 100 ? sellerRaw : '';
+
   return {
     sort,
     order,
@@ -81,6 +85,7 @@ function validateGetItemsParams(params = {}) {
     weapon,
     bonus,
     type,
+    seller,
   };
 }
 
