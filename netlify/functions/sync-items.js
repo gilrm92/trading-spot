@@ -1,5 +1,6 @@
 const prisma = require('./_shared/prisma');
 const { requireAuth } = require('./_shared/auth');
+const { getAppTypeFromTorn } = require('./_shared/weaponMapping');
 
 exports.handler = async (event, context) => {
   // Handle CORS preflight
@@ -109,8 +110,8 @@ exports.handler = async (event, context) => {
             if (!detailsData.error) {
               itemDetails = detailsData.itemdetails || {};
               stats = itemDetails.stats || {};
-              bonuses = itemDetails.bonuses || [];
-            } else {
+            bonuses = Array.isArray(itemDetails.bonuses) ? itemDetails.bonuses : [];
+        } else {
               errors.push(`Error for UID ${item.UID}: ${detailsData.error.error || 'Unknown error'}`);
             }
           } else {
@@ -146,6 +147,10 @@ exports.handler = async (event, context) => {
           // Continue without image if fetch fails
         }
 
+        // category = Torn type (Weapon, Armor, etc.), type = Primary/Secondary/Melee for search
+        const category = (itemDetails.type || '').trim() || null;
+        const type = getAppTypeFromTorn(itemDetails.type, itemDetails.sub_type, item.type);
+
         // Prepare data for database
         const itemData = {
           sellerId: auth.userId,
@@ -153,7 +158,8 @@ exports.handler = async (event, context) => {
           tornId: item.ID,
           uid: BigInt(item.UID),
           name: item.name,
-          type: item.type,
+          category,
+          type,
           subType: itemDetails.sub_type || null,
           quantity: 1,
           circulation: item.circulation,
@@ -162,7 +168,7 @@ exports.handler = async (event, context) => {
           accuracy: stats.accuracy || null,
           armor: stats.armor || null,
           quality: stats.quality || null,
-          bonuses: bonuses.length > 0 ? bonuses : null,
+              bonuses: bonuses.length > 0 ? bonuses : null,
           rarity: itemDetails.rarity || null,
           image: imageUrl,
         };

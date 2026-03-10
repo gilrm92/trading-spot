@@ -19,12 +19,26 @@ function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate, onDelete })
   const getRarityColor = (rarity) => {
     const colors = {
       yellow: '#ffd700',
+      orange: '#e9a030',
       red: '#ff4444',
       blue: '#4444ff',
       green: '#44ff44',
       purple: '#aa44ff',
     };
-    return colors[rarity] || '#888';
+    return colors[rarity?.toLowerCase()] || '#888';
+  };
+
+  const getRarityBadgeStyle = (rarity) => {
+    const r = rarity?.toLowerCase();
+    const styles = {
+      yellow: { background: 'rgba(254, 255, 196, 0.9)', color: '#b8860b' },
+      orange: { background: 'rgba(233, 218, 198, 0.95)', color: '#c2410c' },
+      red: { background: 'rgba(234, 207, 209, 0.9)', color: '#b91c1c' },
+      blue: { background: 'rgba(180, 200, 255, 0.9)', color: '#1e40af' },
+      green: { background: 'rgba(200, 255, 200, 0.9)', color: '#15803d' },
+      purple: { background: 'rgba(220, 180, 255, 0.9)', color: '#6b21a8' },
+    };
+    return styles[r] || { background: 'rgba(136, 136, 136, 0.3)', color: '#888' };
   };
 
   const getImageContainerBackground = (rarity) => {
@@ -86,8 +100,14 @@ function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate, onDelete })
           )}
           {item.rarity && (
             <span
-              className="item-rarity"
-              style={{ color: getRarityColor(item.rarity) }}
+              className="item-rarity item-rarity-badge"
+              style={{
+                ...getRarityBadgeStyle(item.rarity),
+                padding: '0.25rem 0.5rem',
+                borderRadius: '4px',
+                fontSize: '0.75rem',
+                fontWeight: '600',
+              }}
             >
               {item.rarity}
             </span>

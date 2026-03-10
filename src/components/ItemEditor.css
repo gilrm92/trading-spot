@@ -44,6 +44,15 @@
   line-height: 1.4;
 }
 
+.modal-hint .script-link {
+  color: #7db8e8;
+  text-decoration: none;
+}
+
+.modal-hint .script-link:hover {
+  text-decoration: underline;
+}
+
 .close-button {
   background: none;
   border: none;

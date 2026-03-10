@@ -1,7 +1,11 @@
 const prisma = require('./_shared/prisma');
 const { requireAuth, verifyTornAPIKey } = require('./_shared/auth');
 const WEAPONS = require('./_shared/weapons');
-const ALLOWED_WEAPON_TYPES = ['Primary', 'Secondary', 'Melee'];
+const {
+  ALLOWED_WEAPON_TYPES,
+  TORN_SUB_TYPE_TO_APP_TYPE,
+  getAppTypeFromTorn,
+} = require('./_shared/weaponMapping');
 const ALLOWED_RARITIES = ['yellow', 'orange', 'red'];
 
 const corsHeaders = {
@@ -139,37 +143,41 @@ exports.handler = async (event, context) => {
     }
 
     const name = itemDetails.name || 'Unknown';
-    const type = (itemDetails.type || '').trim();
+    const tornType = (itemDetails.type || '').trim();
+    const subType = (itemDetails.sub_type || '').trim().replace(/-/g, '_');
     const rarity = (itemDetails.rarity || '').trim().toLowerCase();
 
     console.log('[add-by-uid] Item details', {
       uid: uidNum,
       name,
-      type: type || '(empty)',
+      tornType: tornType || '(empty)',
+      subType: subType || '(empty)',
       rarity: rarity || '(empty)',
       tornId,
     });
 
-    // Check if weapon: type (case-insensitive) or name in weapons list
-    const matchedType = ALLOWED_WEAPON_TYPES.find(
-      (t) => t.toLowerCase() === type.toLowerCase()
-    );
+    // Check if weapon: Torn type "Weapon", or sub_type maps to Primary/Secondary/Melee, or name in weapons list
+    const matchedAppType = ALLOWED_WEAPON_TYPES.find(
+      (t) => t.toLowerCase() === tornType.toLowerCase()
+    ) || TORN_SUB_TYPE_TO_APP_TYPE[subType];
+    const tornTypeIsWeapon = tornType.toLowerCase() === 'weapon';
     const nameMatch = WEAPONS.includes(name);
 
-    const isWeapon = matchedType || nameMatch;
+    const isWeapon = tornTypeIsWeapon || matchedAppType || nameMatch;
     if (!isWeapon) {
       console.log('[add-by-uid] Rejected: not a weapon', {
         uid: uidNum,
         name,
-        type,
+        tornType,
         nameMatch,
-        matchedType: !!matchedType,
+        matchedAppType: !!matchedAppType,
+        tornTypeIsWeapon,
       });
       return {
         statusCode: 400,
         headers: corsHeaders,
         body: JSON.stringify({
-          error: `Only weapons can be listed. This item is not a weapon (type: "${type || 'unknown'}").`,
+          error: `Only weapons can be listed. This item is not a weapon (type: "${tornType || 'unknown'}").`,
         }),
       };
     }
@@ -217,8 +225,7 @@ exports.handler = async (event, context) => {
     }
 
     const sellerName = verification.user.name || verification.user.username || null;
-    // Normalize type to proper casing when we have a match
-    const normalizedType = matchedType || type || 'Unknown';
+    const normalizedType = getAppTypeFromTorn(tornType, subType, null);
 
     const itemData = {
       sellerId: auth.userId,
@@ -226,6 +233,7 @@ exports.handler = async (event, context) => {
       tornId,
       uid: BigInt(uidNum),
       name,
+      category: tornType || null,
       type: normalizedType,
       subType: itemDetails.sub_type || null,
       quantity,

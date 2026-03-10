@@ -358,6 +358,18 @@ function AddByUidModal({ onClose, onSuccess, apiKey, adding, setAdding }) {
           orange, or red quality can be listed. Your API key is used only to fetch the item and is
           not stored.
         </p>
+        <p className="modal-hint">
+          Can&apos;t find the UID? Install the{' '}
+          <a
+            href="https://raw.githubusercontent.com/gilrm92/torn-scripts-public/master/item-armory-id.user.js"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="script-link"
+          >
+            Item Armory ID Exposer
+          </a>
+          {' '}Tampermonkey script — it shows the UID on Torn item pages and lets you click to copy.
+        </p>
         <form onSubmit={handleSubmit} className="item-editor-form">
           <div className="form-group">
             <label htmlFor="uid">Item UID *</label>
