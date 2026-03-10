@@ -1,6 +1,7 @@
 const prisma = require('./_shared/prisma');
+const { serializeItem } = require('./_shared/serialize');
 
-// Get userId from request body (generated on client side and stored in localStorage)
+// Get userId from request body (generated on client side and stored in localStorage) (generated on client side and stored in localStorage)
 function getUserId(event) {
   try {
     const body = JSON.parse(event.body || '{}');
@@ -117,10 +118,7 @@ exports.handler = async (event, context) => {
           },
           body: JSON.stringify({
             success: true,
-            item: {
-              ...updatedItem,
-              uid: updatedItem.uid.toString()
-            },
+            item: serializeItem({ ...updatedItem, reactions: undefined }),
             userReaction: {
               liked: existingReaction.liked,
               disliked: existingReaction.disliked,
@@ -242,11 +240,7 @@ exports.handler = async (event, context) => {
       },
       body: JSON.stringify({
         success: true,
-        item: {
-          ...updatedItem,
-          uid: updatedItem.uid.toString(),
-          reactions: undefined // Don't send reactions array
-        },
+        item: serializeItem({ ...updatedItem, reactions: undefined }),
         userReaction: userReaction ? {
           liked: userReaction.liked,
           disliked: userReaction.disliked,

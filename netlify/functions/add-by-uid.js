@@ -1,5 +1,6 @@
 const prisma = require('./_shared/prisma');
 const { requireAuth, verifyTornAPIKey } = require('./_shared/auth');
+const { serializeItem } = require('./_shared/serialize');
 const WEAPONS = require('./_shared/weapons');
 const {
   ALLOWED_WEAPON_TYPES,
@@ -195,12 +196,13 @@ exports.handler = async (event, context) => {
 
     const quantity = 1;
     const circulation = itemDetails.circulation != null ? itemDetails.circulation : 0;
-    const marketPrice =
+    const marketPriceRaw =
       itemDetails.market_price != null
         ? itemDetails.market_price
         : itemDetails.market_value != null
           ? itemDetails.market_value
           : 0;
+    const marketPrice = BigInt(marketPriceRaw);
 
     const existing = await prisma.item.findFirst({
       where: { uid: BigInt(uidNum), isSold: false },
@@ -264,10 +266,7 @@ exports.handler = async (event, context) => {
       sellerId: created.sellerId,
     });
 
-    const serialized = {
-      ...created,
-      uid: created.uid.toString(),
-    };
+    const serialized = serializeItem(created);
 
     return {
       statusCode: 200,

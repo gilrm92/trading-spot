@@ -1,5 +1,6 @@
 const prisma = require('./_shared/prisma');
 const { requireAuth } = require('./_shared/auth');
+const { serializeItem } = require('./_shared/serialize');
 
 exports.handler = async (event, context) => {
   // Handle CORS preflight
@@ -97,11 +98,7 @@ exports.handler = async (event, context) => {
       where: { id: itemId }
     });
 
-    // Convert BigInt to string for JSON serialization
-    const serializedItem = {
-      ...deletedItem,
-      uid: deletedItem.uid.toString()
-    };
+    const serializedItem = serializeItem(deletedItem);
 
     return {
       statusCode: 200,

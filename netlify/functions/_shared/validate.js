@@ -11,7 +11,7 @@ const SORT_WHITELIST = ['name', 'price', 'quality', 'damage', 'accuracy', 'creat
 const ORDER_WHITELIST = ['asc', 'desc'];
 const MAX_SEARCH_LENGTH = 200;
 const MAX_OFFSET = 10000;
-const PRICE_BOUND = 1e9;
+const PRICE_BOUND = 2e10; // 20 billion
 
 function trimString(val, maxLen = MAX_SEARCH_LENGTH) {
   if (val == null || typeof val !== 'string') return '';
@@ -127,7 +127,7 @@ function validateUpdateItemBody(body) {
       if (isNaN(num) || num < 0) {
         return { valid: false, error: 'myPrice must be a non-negative number' };
       }
-      data.myPrice = Math.min(Math.floor(num), PRICE_BOUND);
+      data.myPrice = BigInt(Math.min(Math.floor(num), PRICE_BOUND));
     } else {
       data.myPrice = null;
     }

@@ -1,6 +1,7 @@
 const prisma = require('./_shared/prisma');
 const { requireAuth } = require('./_shared/auth');
 const { validateUpdateItemBody } = require('./_shared/validate');
+const { serializeItem } = require('./_shared/serialize');
 
 exports.handler = async (event, context) => {
   // Handle CORS preflight
@@ -128,11 +129,7 @@ exports.handler = async (event, context) => {
       data: updateData
     });
 
-    // Convert BigInt to string for JSON serialization
-    const serializedItem = {
-      ...updatedItem,
-      uid: updatedItem.uid.toString()
-    };
+    const serializedItem = serializeItem(updatedItem);
 
     return {
       statusCode: 200,

@@ -1,5 +1,6 @@
 const prisma = require('./_shared/prisma');
 const { requireAuth } = require('./_shared/auth');
+const { serializeItem } = require('./_shared/serialize');
 
 const corsHeaders = {
   'Content-Type': 'application/json',
@@ -46,10 +47,7 @@ exports.handler = async (event, context) => {
       ],
     });
 
-    const serializedItems = items.map((item) => ({
-      ...item,
-      uid: item.uid.toString(),
-    }));
+    const serializedItems = items.map(serializeItem);
 
     return {
       statusCode: 200,

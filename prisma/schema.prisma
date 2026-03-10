@@ -22,7 +22,7 @@ model Item {
   subType       String?
   quantity      Int
   circulation   Int
-  marketPrice   Int
+  marketPrice   BigInt
   damage        Float?
   accuracy      Float?
   armor         Float?
@@ -31,7 +31,7 @@ model Item {
   rarity        String?
   image         String?
   myDescription String?
-  myPrice       Int?
+  myPrice       BigInt?
   likes         Int      @default(0)
   dislikes      Int      @default(0)
   heatUps       Int      @default(0)

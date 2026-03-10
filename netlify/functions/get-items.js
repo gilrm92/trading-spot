@@ -2,6 +2,7 @@ const prisma = require('./_shared/prisma');
 const { getClientIP } = require('./_shared/auth');
 const { Prisma } = require('@prisma/client');
 const { validateGetItemsParams } = require('./_shared/validate');
+const { serializeItem } = require('./_shared/serialize');
 
 // Rate limit for public search: 60 requests per minute per IP
 const SEARCH_RATE_LIMIT_WINDOW_MS = 60000;
@@ -101,8 +102,8 @@ exports.handler = async (event, context) => {
     }
     if ((minPrice != null && !isNaN(minPrice)) || (maxPrice != null && !isNaN(maxPrice))) {
       where.myPrice = {};
-      if (minPrice != null && !isNaN(minPrice)) where.myPrice.gte = minPrice;
-      if (maxPrice != null && !isNaN(maxPrice)) where.myPrice.lte = maxPrice;
+      if (minPrice != null && !isNaN(minPrice)) where.myPrice.gte = BigInt(Math.floor(minPrice));
+      if (maxPrice != null && !isNaN(maxPrice)) where.myPrice.lte = BigInt(Math.floor(maxPrice));
     }
     if (minQuality != null && !isNaN(minQuality)) {
       where.quality = { gte: minQuality };
@@ -155,10 +156,7 @@ exports.handler = async (event, context) => {
       take: limit,
     });
 
-    const serializedItems = items.map((item) => ({
-      ...item,
-      uid: item.uid.toString(),
-    }));
+    const serializedItems = items.map(serializeItem);
 
     return {
       statusCode: 200,

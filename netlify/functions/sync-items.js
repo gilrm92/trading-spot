@@ -163,7 +163,7 @@ exports.handler = async (event, context) => {
           subType: itemDetails.sub_type || null,
           quantity: 1,
           circulation: item.circulation,
-          marketPrice: item.market_price,
+          marketPrice: BigInt(item.market_price ?? 0),
           damage: stats.damage || null,
           accuracy: stats.accuracy || null,
           armor: stats.armor || null,
