@@ -46,7 +46,8 @@ function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate, onDelete })
     // rgba with ~0.5 alpha for subtle transparency
     if (r === 'yellow') return 'rgba(254, 255, 196, 0.5)';
     if (r === 'red') return 'rgba(234, 207, 209, 0.5)';
-    if (r === 'orange' || r === 'blue' || r === 'green' || r === 'purple') return 'rgba(233, 218, 198, 0.5)';
+    if (r === 'orange') return 'rgba(216, 143, 46, 0.5)';
+    if (r === 'blue' || r === 'green' || r === 'purple') return 'rgba(233, 218, 198, 0.5)';
     return null;
   };
 
