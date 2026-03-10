@@ -41,6 +41,10 @@ class ApiService {
     return this.request('/.netlify/functions/get-items');
   }
 
+  async getSellers() {
+    return this.request('/.netlify/functions/get-sellers');
+  }
+
   async searchItems(params = {}) {
     const sp = new URLSearchParams();
     if (params.sort != null) sp.set('sort', params.sort);

@@ -38,6 +38,7 @@ function PublicPage() {
   const [bonus, setBonus] = useState('');
   const [searchParams] = useSearchParams();
   const [seller, setSeller] = useState(() => searchParams.get('seller') || '');
+  const [sellers, setSellers] = useState([]);
   const [offset, setOffset] = useState(0);
 
   const loadItems = useCallback(async (append = false, fetchOffset = 0) => {
@@ -96,6 +97,11 @@ function PublicPage() {
   const handleLoadMore = () => {
     loadItems(true, offset);
   };
+
+  // Load sellers for combo box
+  useEffect(() => {
+    api.getSellers().then(setSellers).catch(() => setSellers([]));
+  }, []);
 
   // Sync seller from URL when it changes (e.g. user opens share link)
   useEffect(() => {
@@ -275,13 +281,21 @@ function PublicPage() {
               </label>
               <label className="filter-group">
                 <span>Seller</span>
-                <input
-                  type="text"
-                  placeholder="Torn username"
+                <select
                   value={seller}
                   onChange={(e) => setSeller(e.target.value)}
-                  className="filter-input"
-                />
+                  className="filter-select"
+                >
+                  <option value="">All sellers</option>
+                  {[
+                    ...sellers,
+                    ...(seller && !sellers.includes(seller) ? [seller] : []),
+                  ].map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
               </label>
             </div>
           </div>
