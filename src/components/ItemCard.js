@@ -32,7 +32,7 @@ function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate, onDelete })
     const r = rarity?.toLowerCase();
     const styles = {
       yellow: { background: 'rgba(254, 255, 196, 0.9)', color: '#b8860b' },
-      orange: { background: 'rgba(233, 218, 198, 0.95)', color: '#c2410c' },
+      orange: { background: 'rgba(216, 143, 46, 0.5)', color: '#c2410c' },
       red: { background: 'rgba(234, 207, 209, 0.9)', color: '#b91c1c' },
       blue: { background: 'rgba(180, 200, 255, 0.9)', color: '#1e40af' },
       green: { background: 'rgba(200, 255, 200, 0.9)', color: '#15803d' },

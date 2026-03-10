@@ -225,7 +225,7 @@ exports.handler = async (event, context) => {
     }
 
     const sellerName = verification.user.name || verification.user.username || null;
-    const normalizedType = getAppTypeFromTorn(tornType, subType, null);
+    const normalizedType = getAppTypeFromTorn(name, tornType, subType, null);
 
     const itemData = {
       sellerId: auth.userId,
@@ -233,8 +233,8 @@ exports.handler = async (event, context) => {
       tornId,
       uid: BigInt(uidNum),
       name,
-      category: tornType || null,
-      type: normalizedType,
+      category: normalizedType,
+      type: tornType || 'Weapon',
       subType: itemDetails.sub_type || null,
       quantity,
       circulation,

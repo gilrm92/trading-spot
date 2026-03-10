@@ -147,9 +147,9 @@ exports.handler = async (event, context) => {
           // Continue without image if fetch fails
         }
 
-        // category = Torn type (Weapon, Armor, etc.), type = Primary/Secondary/Melee for search
-        const category = (itemDetails.type || '').trim() || null;
-        const type = getAppTypeFromTorn(itemDetails.type, itemDetails.sub_type, item.type);
+        // category = Primary/Secondary/Melee (for search), type = Torn category (Weapon, etc.)
+        const category = getAppTypeFromTorn(item.name, itemDetails.type, itemDetails.sub_type, item.type);
+        const type = (itemDetails.type || '').trim() || 'Weapon';
 
         // Prepare data for database
         const itemData = {

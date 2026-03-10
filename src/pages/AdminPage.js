@@ -132,7 +132,7 @@ function AdminPage() {
   const filteredItems = items.filter((item) => {
     if (filterSold === 'sold' && !item.isSold) return false;
     if (filterSold === 'notSold' && item.isSold) return false;
-    if (filterType && item.type !== filterType) return false;
+    if (filterType && item.category !== filterType) return false;
     if (filterWeapon && item.name !== filterWeapon) return false;
     if (filterBonus) {
       const bonuses = Array.isArray(item.bonuses) ? item.bonuses : [];

@@ -97,7 +97,7 @@ exports.handler = async (event, context) => {
       where.name = { contains: validWeapon, mode: 'insensitive' };
     }
     if (validType) {
-      where.type = { equals: validType, mode: 'insensitive' };
+      where.category = { equals: validType, mode: 'insensitive' };
     }
     if ((minPrice != null && !isNaN(minPrice)) || (maxPrice != null && !isNaN(maxPrice))) {
       where.myPrice = {};

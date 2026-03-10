@@ -17,8 +17,8 @@ model Item {
   tornId        Int      // Item type ID; not unique (many sellers can list same type)
   uid           BigInt   // Torn instance ID; unique only when isSold=false (partial index)
   name          String
-  category      String?   // Torn category: Weapon, Armor, etc. (for validation)
-  type          String   // Primary, Secondary, Melee (for search/filter)
+  category      String?   // Primary, Secondary, Melee (for search/filter)
+  type          String   // Torn category: Weapon, Armor, etc. (for display)
   subType       String?
   quantity      Int
   circulation   Int
