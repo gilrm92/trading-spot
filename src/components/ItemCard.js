@@ -294,14 +294,16 @@ function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate, onDelete })
         >
           👎 {reactionCounts.dislikes}
         </button>
-        <button
-          className="reaction-button share-button"
-          onClick={handleShare}
-          disabled={sharing}
-          title="Share card image link (for Torn forums etc.)"
-        >
-          {sharing ? '…' : shareFeedback || '🔗 Share'}
-        </button>
+        {isAdmin && (
+          <button
+            className="reaction-button share-button"
+            onClick={handleShare}
+            disabled={sharing}
+            title="Share card image link (for Torn forums etc.)"
+          >
+            {sharing ? '…' : shareFeedback || '🔗 Share'}
+          </button>
+        )}
       </div>
 
       {isAdmin && (

@@ -6,38 +6,35 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-exports.handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers: corsHeaders, body: '' };
+export default async (req, context) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
 
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Method not allowed' }),
-    };
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ error: 'Method not allowed' }),
+      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   }
 
   try {
-    const body = JSON.parse(event.body || '{}');
+    const body = await req.json();
     const { itemId, image } = body;
 
     if (!itemId || !image) {
-      return {
-        statusCode: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'itemId and image are required' }),
-      };
+      return new Response(
+        JSON.stringify({ error: 'itemId and image are required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const id = parseInt(itemId, 10);
     if (isNaN(id) || id < 1) {
-      return {
-        statusCode: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Invalid item ID' }),
-      };
+      return new Response(
+        JSON.stringify({ error: 'Invalid item ID' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Extract base64 from data URL if provided
@@ -46,11 +43,10 @@ exports.handler = async (event) => {
       base64 = image.split(',')[1];
     }
     if (!base64 || typeof base64 !== 'string') {
-      return {
-        statusCode: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Invalid image data' }),
-      };
+      return new Response(
+        JSON.stringify({ error: 'Invalid image data' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const buffer = Buffer.from(base64, 'base64');
@@ -58,21 +54,18 @@ exports.handler = async (event) => {
     const key = `card-${id}.png`;
     await store.set(key, buffer);
 
-    // Build the share URL (works with Netlify base URL)
-    const baseUrl = process.env.URL || event.headers?.['x-forwarded-host'] || 'https://torn-trading-spot.netlify.app';
+    const baseUrl = process.env.URL || req.headers.get('x-forwarded-host') || 'https://torn-trading-spot.netlify.app';
     const shareUrl = `${baseUrl}/card/${id}.png`;
 
-    return {
-      statusCode: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ success: true, url: shareUrl }),
-    };
+    return new Response(
+      JSON.stringify({ success: true, url: shareUrl }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   } catch (error) {
     console.error('Save card image error:', error);
-    return {
-      statusCode: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: error.message || 'Failed to save card image' }),
-    };
+    return new Response(
+      JSON.stringify({ error: error.message || 'Failed to save card image' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   }
 };
