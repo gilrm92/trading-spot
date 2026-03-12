@@ -120,6 +120,7 @@ function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate, onDelete })
         allowTaint: false,
         backgroundColor: '#2a2a2a',
         scale: 2,
+        ignoreElements: (el) => el.closest('.share-hide') !== null,
       });
       const dataUrl = canvas.toDataURL('image/png');
 
@@ -302,7 +303,7 @@ function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate, onDelete })
         </div>
       )}
 
-      <div className="item-reactions">
+      <div className="item-reactions share-hide">
         <button
           className={`reaction-button heat-button ${userReaction?.heatedUp ? 'active' : ''}`}
           onClick={() => handleReaction('heat')}
@@ -340,7 +341,7 @@ function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate, onDelete })
       </div>
 
       {isAdmin && (
-        <div className="admin-actions" style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto' }}>
+        <div className="admin-actions share-hide" style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto' }}>
           {onEdit && (
             <button className="edit-button" onClick={() => onEdit(item)}>
               Edit
