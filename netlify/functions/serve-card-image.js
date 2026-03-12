@@ -17,7 +17,12 @@ export default async (req, context) => {
   }
 
   const url = new URL(req.url);
-  const itemId = url.searchParams.get('id');
+  let itemId = url.searchParams.get('id');
+  // Redirect may not pass query; extract id from path /card/123.png
+  if (!itemId && url.pathname.includes('/card/')) {
+    const match = url.pathname.match(/\/card\/([^/]+?)(\.png)?$/i);
+    if (match) itemId = match[1];
+  }
 
   if (!itemId) {
     return new Response(
