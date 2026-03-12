@@ -88,9 +88,11 @@ function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate, onDelete })
     setSharing(true);
     setShareFeedback(null);
     try {
+      const proxyUrl = `${window.location.origin}/.netlify/functions/proxy-image`;
       const canvas = await html2canvas(cardRef.current, {
         useCORS: true,
         allowTaint: false,
+        proxy: proxyUrl,
         backgroundColor: '#2a2a2a',
         scale: 2,
       });
