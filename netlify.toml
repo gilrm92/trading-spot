@@ -10,6 +10,12 @@
   included_files = ["prisma/**/*.prisma"]
 
 [[redirects]]
+  from = "/card/*"
+  to = "/.netlify/functions/serve-card-image?id=:splat"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200

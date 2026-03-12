@@ -112,6 +112,13 @@ class ApiService {
       method: 'DELETE',
     });
   }
+
+  async saveCardImage(itemId, imageBase64) {
+    return this.request('/.netlify/functions/save-card-image', {
+      method: 'POST',
+      body: JSON.stringify({ itemId, image: imageBase64 }),
+    });
+  }
 }
 
 export default new ApiService();

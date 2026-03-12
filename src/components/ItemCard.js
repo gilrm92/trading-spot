@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import html2canvas from 'html2canvas';
 import './ItemCard.css';
 import api from '../services/api';
 import { getOrCreateUserId } from '../utils/userId';
 
 function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate, onDelete }) {
+  const cardRef = useRef(null);
   const [userReaction, setUserReaction] = useState(item.userReaction || null);
   const [reactionCounts, setReactionCounts] = useState({
     likes: item.likes || 0,
@@ -11,6 +13,8 @@ function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate, onDelete })
     heatUps: item.heatUps || 0
   });
   const [reacting, setReacting] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const [shareFeedback, setShareFeedback] = useState(null);
   const formatPrice = (price) => {
     if (!price) return 'N/A';
     return new Intl.NumberFormat('en-US').format(price);
@@ -79,10 +83,35 @@ function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate, onDelete })
     }
   }
 
+  async function handleShare() {
+    if (sharing || !cardRef.current) return;
+    setSharing(true);
+    setShareFeedback(null);
+    try {
+      const canvas = await html2canvas(cardRef.current, {
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#2a2a2a',
+        scale: 2,
+      });
+      const dataUrl = canvas.toDataURL('image/png');
+      const { url } = await api.saveCardImage(item.id, dataUrl);
+      await navigator.clipboard.writeText(url);
+      setShareFeedback('Link copied!');
+      setTimeout(() => setShareFeedback(null), 3000);
+    } catch (error) {
+      console.error('Share error:', error);
+      setShareFeedback(error.message || 'Failed to share');
+      setTimeout(() => setShareFeedback(null), 5000);
+    } finally {
+      setSharing(false);
+    }
+  }
+
   const isSold = item.isSold || false;
 
   return (
-    <div className={`item-card ${isSold ? 'item-sold' : ''}`}>
+    <div ref={cardRef} className={`item-card ${isSold ? 'item-sold' : ''}`}>
       <div className="item-header">
         <h3 className="item-name">{item.name}</h3>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
@@ -264,6 +293,14 @@ function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate, onDelete })
           title={isSold ? 'This item is sold' : `${reactionCounts.dislikes} user${reactionCounts.dislikes !== 1 ? 's' : ''} disliked this item`}
         >
           👎 {reactionCounts.dislikes}
+        </button>
+        <button
+          className="reaction-button share-button"
+          onClick={handleShare}
+          disabled={sharing}
+          title="Share card image link (for Torn forums etc.)"
+        >
+          {sharing ? '…' : shareFeedback || '🔗 Share'}
         </button>
       </div>
 
