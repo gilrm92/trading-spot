@@ -42,9 +42,9 @@ export default async (req, context) => {
   try {
     const store = getStore({ name: 'card-images' });
     const key = `card-${id}.png`;
-    const data = await store.get(key);
+    const data = await store.get(key, { type: 'arrayBuffer' });
 
-    if (!data) {
+    if (!data || data.byteLength === 0) {
       return new Response(
         JSON.stringify({ error: 'Card image not found. Click Share on the card first.' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
