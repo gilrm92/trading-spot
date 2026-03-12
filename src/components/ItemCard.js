@@ -88,15 +88,46 @@ function ItemCard({ item, onEdit, isAdmin = false, onReactionUpdate, onDelete })
     setSharing(true);
     setShareFeedback(null);
     try {
-      const proxyUrl = `${window.location.origin}/.netlify/functions/proxy-image`;
+      const proxyBase = `${window.location.origin}/.netlify/functions/proxy-image`;
+      const isTornImage = (url) => url && /torn\.com\/images\//i.test(url);
+
+      // Temporarily swap Torn img src to proxied URLs so html2canvas can load them (no CORS)
+      const imgs = cardRef.current.querySelectorAll('img[src]');
+      const originals = [];
+      imgs.forEach((img) => {
+        const src = img.getAttribute('src');
+        if (isTornImage(src)) {
+          originals.push({ img, src });
+          img.src = `${proxyBase}?url=${encodeURIComponent(src)}`;
+        }
+      });
+
+      // Wait for swapped images to load before capturing
+      await Promise.all(
+        originals.map(({ img }) =>
+          img.complete
+            ? Promise.resolve()
+            : new Promise((resolve) => {
+                img.onload = resolve;
+                img.onerror = resolve;
+                setTimeout(resolve, 3000);
+              })
+        )
+      );
+
       const canvas = await html2canvas(cardRef.current, {
         useCORS: true,
         allowTaint: false,
-        proxy: proxyUrl,
         backgroundColor: '#2a2a2a',
         scale: 2,
       });
       const dataUrl = canvas.toDataURL('image/png');
+
+      // Restore original img src
+      originals.forEach(({ img, src }) => {
+        img.src = src;
+      });
+
       const { url } = await api.saveCardImage(item.id, dataUrl);
       await navigator.clipboard.writeText(url);
       setShareFeedback('Link copied!');
