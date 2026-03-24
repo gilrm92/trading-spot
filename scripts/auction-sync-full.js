@@ -25,9 +25,13 @@ async function main() {
   const { intervalSeconds } = parseArgs(process.argv.slice(2));
   const intervalMs = Math.round(intervalSeconds * 1000);
 
-  const apiKey = process.env.TORN_AUCTION_API_KEY?.trim();
+  const apiKey =
+    process.env.TORN_AUCTION_API_KEY?.trim() ||
+    process.env.TORN_API_KEY?.trim();
   if (!apiKey) {
-    console.error('Missing TORN_AUCTION_API_KEY');
+    console.error(
+      'Missing TORN_AUCTION_API_KEY (or TORN_API_KEY) in .env'
+    );
     process.exit(1);
   }
   if (!process.env.DATABASE_URL) {

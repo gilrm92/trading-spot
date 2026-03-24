@@ -89,6 +89,21 @@ function validateGetItemsParams(params = {}) {
   };
 }
 
+/**
+ * Validate get-auction-sold query params (weapon/bonus whitelist + pagination).
+ */
+function validateAuctionSoldParams(params = {}) {
+  const offset = parseIntSafe(params.offset, 0, { min: 0, max: MAX_OFFSET });
+  const limit = parseIntSafe(params.limit, 24, { min: 1, max: 200 });
+
+  const weaponRaw = (params.weapon || '').trim();
+  const bonusRaw = (params.bonus || '').trim();
+  const weapon = weaponRaw && WEAPONS.includes(weaponRaw) ? weaponRaw : '';
+  const bonus = bonusRaw && WEAPON_BONUSES.includes(bonusRaw) ? bonusRaw : '';
+
+  return { offset, limit, weapon, bonus };
+}
+
 const MAX_DESCRIPTION_LENGTH = 5000;
 
 /**
@@ -149,6 +164,7 @@ module.exports = {
   parseIntSafe,
   parseFloatSafe,
   validateGetItemsParams,
+  validateAuctionSoldParams,
   validateUpdateItemBody,
   SORT_WHITELIST,
   ORDER_WHITELIST,

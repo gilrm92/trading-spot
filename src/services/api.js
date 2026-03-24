@@ -64,6 +64,16 @@ class ApiService {
     return this.request(`/.netlify/functions/get-items${qs ? `?${qs}` : ''}`);
   }
 
+  async getAuctionSold(params = {}) {
+    const sp = new URLSearchParams();
+    if (params.weapon != null && params.weapon !== '') sp.set('weapon', params.weapon);
+    if (params.bonus != null && params.bonus !== '') sp.set('bonus', params.bonus);
+    if (params.limit != null) sp.set('limit', params.limit);
+    if (params.offset != null) sp.set('offset', params.offset);
+    const qs = sp.toString();
+    return this.request(`/.netlify/functions/get-auction-sold${qs ? `?${qs}` : ''}`);
+  }
+
   async getMyItems() {
     return this.request('/.netlify/functions/get-my-items');
   }
