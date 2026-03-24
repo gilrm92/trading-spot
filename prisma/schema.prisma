@@ -57,3 +57,55 @@ model UserReaction {
   @@unique([itemId, userId])
   @@map("user_reactions")
 }
+
+model ItemCatalog {
+  tornItemId Int     @id @map("torn_item_id")
+  name       String
+  type       String
+  subType    String? @map("sub_type")
+
+  listings AuctionHouseListing[]
+
+  @@map("torn_item_catalog")
+}
+
+model BonusDefinition {
+  bonusId     Int    @id @map("bonus_id")
+  title       String
+  description String
+
+  listingsAsBonus1 AuctionHouseListing[] @relation("AuctionBonus1")
+  listingsAsBonus2 AuctionHouseListing[] @relation("AuctionBonus2")
+
+  @@map("torn_bonus_definition")
+}
+
+model AuctionHouseListing {
+  auctionId   Int    @id @map("auction_id")
+  itemUid     BigInt @map("item_uid")
+  sellerId    Int    @map("seller_id")
+  sellerName  String @map("seller_name")
+  buyerId     Int?   @map("buyer_id")
+  buyerName   String? @map("buyer_name")
+  timestamp   Int
+  price       BigInt
+  bids        Int
+  tornItemId  Int    @map("torn_item_id")
+  bonus1Id    Int?   @map("bonus_1_id")
+  bonus2Id    Int?   @map("bonus_2_id")
+  bonus1Value Float? @map("bonus_1_value")
+  bonus2Value Float? @map("bonus_2_value")
+  damage      Float?
+  accuracy    Float?
+  armor       Float?
+  quality     Float?
+  rarity      String?
+
+  catalog ItemCatalog     @relation(fields: [tornItemId], references: [tornItemId], onDelete: Restrict)
+  bonus1  BonusDefinition? @relation("AuctionBonus1", fields: [bonus1Id], references: [bonusId], onDelete: SetNull)
+  bonus2  BonusDefinition? @relation("AuctionBonus2", fields: [bonus2Id], references: [bonusId], onDelete: SetNull)
+
+  @@index([itemUid])
+  @@index([timestamp])
+  @@map("auction_house_listing")
+}

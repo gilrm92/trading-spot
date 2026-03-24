@@ -10,7 +10,9 @@
     "build:react": "react-scripts build",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "auction-sync:full": "node scripts/auction-sync-full.js",
+    "auction-sync:head": "node scripts/auction-sync-head.js"
   },
   "dependencies": {
     "@netlify/blobs": "^10.7.1",

@@ -9,6 +9,11 @@
   node_bundler = "esbuild"
   included_files = ["prisma/**/*.prisma"]
 
+# Head-only: newest auction page each run (full backfill: `npm run auction-sync:full` locally).
+# Cron is minute-resolution; for true 30s polling use the Node script or an external scheduler.
+[functions."sync-auction-house"]
+  schedule = "* * * * *"
+
 [[redirects]]
   from = "/card/*"
   to = "/.netlify/functions/serve-card-image?id=:splat"
