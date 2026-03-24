@@ -71,8 +71,14 @@ exports.handler = async (event) => {
 
   try {
     const rawParams = event.queryStringParameters || {};
-    const { offset, limit, weapon: validWeapon, bonus: validBonus } =
-      validateAuctionSoldParams(rawParams);
+    const {
+      offset,
+      limit,
+      weapon: validWeapon,
+      bonus: validBonus,
+      minBonusValue,
+      maxBonusValue,
+    } = validateAuctionSoldParams(rawParams);
 
     const catalogWhere = {
       type: { equals: 'Weapon', mode: 'insensitive' },
@@ -88,10 +94,39 @@ exports.handler = async (event) => {
 
     if (validBonus) {
       const titleMatch = { equals: validBonus, mode: 'insensitive' };
-      where.OR = [
-        { bonus1: { is: { title: titleMatch } } },
-        { bonus2: { is: { title: titleMatch } } },
-      ];
+      const hasBonusValueFilter = minBonusValue != null || maxBonusValue != null;
+      const bonus1ValueFilter = {};
+      const bonus2ValueFilter = {};
+      if (minBonusValue != null) {
+        bonus1ValueFilter.gte = minBonusValue;
+        bonus2ValueFilter.gte = minBonusValue;
+      }
+      if (maxBonusValue != null) {
+        bonus1ValueFilter.lte = maxBonusValue;
+        bonus2ValueFilter.lte = maxBonusValue;
+      }
+
+      if (hasBonusValueFilter) {
+        where.OR = [
+          {
+            AND: [
+              { bonus1: { is: { title: titleMatch } } },
+              { bonus1Value: bonus1ValueFilter },
+            ],
+          },
+          {
+            AND: [
+              { bonus2: { is: { title: titleMatch } } },
+              { bonus2Value: bonus2ValueFilter },
+            ],
+          },
+        ];
+      } else {
+        where.OR = [
+          { bonus1: { is: { title: titleMatch } } },
+          { bonus2: { is: { title: titleMatch } } },
+        ];
+      }
     }
 
     const rows = await prisma.auctionHouseListing.findMany({

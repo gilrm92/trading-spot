@@ -68,6 +68,12 @@ class ApiService {
     const sp = new URLSearchParams();
     if (params.weapon != null && params.weapon !== '') sp.set('weapon', params.weapon);
     if (params.bonus != null && params.bonus !== '') sp.set('bonus', params.bonus);
+    if (params.minBonusValue != null && params.minBonusValue !== '') {
+      sp.set('minBonusValue', params.minBonusValue);
+    }
+    if (params.maxBonusValue != null && params.maxBonusValue !== '') {
+      sp.set('maxBonusValue', params.maxBonusValue);
+    }
     if (params.limit != null) sp.set('limit', params.limit);
     if (params.offset != null) sp.set('offset', params.offset);
     const qs = sp.toString();

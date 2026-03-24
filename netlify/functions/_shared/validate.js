@@ -89,6 +89,17 @@ function validateGetItemsParams(params = {}) {
   };
 }
 
+const BONUS_VALUE_PCT_MAX = 1000;
+
+function optionalBonusPercentParam(val) {
+  if (val == null || val === '') return null;
+  const n = parseFloat(val);
+  if (isNaN(n)) return null;
+  if (n < 0) return 0;
+  if (n > BONUS_VALUE_PCT_MAX) return BONUS_VALUE_PCT_MAX;
+  return n;
+}
+
 /**
  * Validate get-auction-sold query params (weapon/bonus whitelist + pagination).
  */
@@ -101,7 +112,19 @@ function validateAuctionSoldParams(params = {}) {
   const weapon = weaponRaw && WEAPONS.includes(weaponRaw) ? weaponRaw : '';
   const bonus = bonusRaw && WEAPON_BONUSES.includes(bonusRaw) ? bonusRaw : '';
 
-  return { offset, limit, weapon, bonus };
+  let minBonusValue = optionalBonusPercentParam(params.minBonusValue);
+  let maxBonusValue = optionalBonusPercentParam(params.maxBonusValue);
+  if (minBonusValue != null && maxBonusValue != null && minBonusValue > maxBonusValue) {
+    const t = minBonusValue;
+    minBonusValue = maxBonusValue;
+    maxBonusValue = t;
+  }
+  if (!bonus) {
+    minBonusValue = null;
+    maxBonusValue = null;
+  }
+
+  return { offset, limit, weapon, bonus, minBonusValue, maxBonusValue };
 }
 
 const MAX_DESCRIPTION_LENGTH = 5000;

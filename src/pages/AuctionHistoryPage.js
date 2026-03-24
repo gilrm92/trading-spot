@@ -20,6 +20,27 @@ function formatSoldAt(timestamp) {
   return Number.isNaN(d.getTime()) ? String(timestamp) : d.toLocaleString();
 }
 
+function formatPercent(n) {
+  if (n == null || Number.isNaN(Number(n))) return null;
+  return `${Number(n).toFixed(1)}%`;
+}
+
+function formatBonusTitleLine(title, value) {
+  const pct = formatPercent(value);
+  if (!title) return null;
+  return pct ? `${title} ${pct}` : title;
+}
+
+function buildCardTitle(row) {
+  const name = row.catalog?.name || 'Unknown weapon';
+  const lines = [];
+  const b1 = formatBonusTitleLine(row.bonus1?.title, row.bonus1Value);
+  const b2 = formatBonusTitleLine(row.bonus2?.title, row.bonus2Value);
+  if (b1) lines.push(b1);
+  if (b2) lines.push(b2);
+  return { name, bonusLines: lines };
+}
+
 function AuctionHistoryPage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,6 +49,8 @@ function AuctionHistoryPage() {
   const [error, setError] = useState(null);
   const [weapon, setWeapon] = useState('');
   const [bonus, setBonus] = useState('');
+  const [minBonusPct, setMinBonusPct] = useState('');
+  const [maxBonusPct, setMaxBonusPct] = useState('');
   const [offset, setOffset] = useState(0);
   const sentinelRef = useRef(null);
 
@@ -46,7 +69,11 @@ function AuctionHistoryPage() {
           offset: currentOffset,
         };
         if (weapon) params.weapon = weapon;
-        if (bonus) params.bonus = bonus;
+        if (bonus) {
+          params.bonus = bonus;
+          if (minBonusPct !== '') params.minBonusValue = minBonusPct;
+          if (maxBonusPct !== '') params.maxBonusValue = maxBonusPct;
+        }
 
         const data = await api.getAuctionSold(params);
 
@@ -66,7 +93,7 @@ function AuctionHistoryPage() {
         setLoadingMore(false);
       }
     },
-    [weapon, bonus]
+    [weapon, bonus, minBonusPct, maxBonusPct]
   );
 
   useEffect(() => {
@@ -91,6 +118,7 @@ function AuctionHistoryPage() {
   }, [hasMore, loadingMore, loading, offset, loadRows]);
 
   const initialLoad = loading && items.length === 0;
+  const bonusValueDisabled = !bonus;
 
   return (
     <div className="public-page">
@@ -133,7 +161,13 @@ function AuctionHistoryPage() {
                 <span>Bonus</span>
                 <select
                   value={bonus}
-                  onChange={(e) => setBonus(e.target.value)}
+                  onChange={(e) => {
+                    setBonus(e.target.value);
+                    if (!e.target.value) {
+                      setMinBonusPct('');
+                      setMaxBonusPct('');
+                    }
+                  }}
                   className="filter-select"
                 >
                   <option value="">All bonuses</option>
@@ -144,6 +178,37 @@ function AuctionHistoryPage() {
                   ))}
                 </select>
               </label>
+              <div className="filters-row auction-history-bonus-filters" style={{ flexWrap: 'wrap' }}>
+                <label className="filter-group">
+                  <span>Min bonus %</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    placeholder="Min"
+                    value={minBonusPct}
+                    onChange={(e) => setMinBonusPct(e.target.value)}
+                    className="filter-input"
+                    disabled={bonusValueDisabled}
+                  />
+                </label>
+                <label className="filter-group">
+                  <span>Max bonus %</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    placeholder="Max"
+                    value={maxBonusPct}
+                    onChange={(e) => setMaxBonusPct(e.target.value)}
+                    className="filter-input"
+                    disabled={bonusValueDisabled}
+                  />
+                </label>
+                {bonusValueDisabled && (
+                  <span className="auction-history-bonus-filters-muted">Pick a bonus to filter by %</span>
+                )}
+              </div>
             </div>
           </div>
 
@@ -180,70 +245,54 @@ function AuctionHistoryPage() {
                       <span>Updating...</span>
                     </div>
                   )}
-                  <ul className="auction-history-list" aria-label="Sold weapons">
-                    {items.map((row) => (
-                      <li key={row.auctionId} className="auction-history-row">
-                        <div className="auction-history-row-header">
-                          <span className="auction-history-weapon">
-                            {row.catalog?.name || 'Unknown weapon'}
-                          </span>
-                          <span className="auction-history-price">
-                            ${formatPrice(row.price)}
-                          </span>
-                        </div>
-                        <div className="auction-history-meta">
-                          Sold {formatSoldAt(row.timestamp)}
-                        </div>
-                        <dl className="auction-history-detail-grid">
-                          <div>
-                            <dt>Seller</dt>
-                            <dd>{row.sellerName || '—'}</dd>
-                          </div>
-                          <div>
-                            <dt>Buyer</dt>
-                            <dd>{row.buyerName || '—'}</dd>
-                          </div>
-                          <div>
-                            <dt>Quality</dt>
-                            <dd>{row.quality != null ? row.quality : '—'}</dd>
-                          </div>
-                          <div>
-                            <dt>Damage</dt>
-                            <dd>{row.damage != null ? row.damage : '—'}</dd>
-                          </div>
-                          <div>
-                            <dt>Accuracy</dt>
-                            <dd>{row.accuracy != null ? row.accuracy : '—'}</dd>
-                          </div>
-                          <div>
-                            <dt>Bids</dt>
-                            <dd>{row.bids != null ? row.bids : '—'}</dd>
-                          </div>
-                          <div>
-                            <dt>Item UID</dt>
-                            <dd>{row.itemUid != null ? row.itemUid : '—'}</dd>
-                          </div>
-                        </dl>
-                        {(row.bonus1 || row.bonus2) && (
-                          <div className="auction-history-bonuses">
-                            {row.bonus1 && (
-                              <div>
-                                {row.bonus1.title}
-                                {row.bonus1Value != null ? ` (${row.bonus1Value})` : ''}
+                  <div className="auction-history-grid-wrap">
+                    <ul className="auction-history-grid" aria-label="Sold weapons">
+                      {items.map((row) => {
+                        const { name, bonusLines } = buildCardTitle(row);
+                        return (
+                          <li key={row.auctionId} className="auction-history-card">
+                            <h3 className="auction-history-card-title">
+                              <span className="auction-history-name">{name}</span>
+                              {bonusLines.map((line, idx) => (
+                                <span key={`${row.auctionId}-b-${idx}`} className="auction-history-bonus-line">
+                                  {line}
+                                </span>
+                              ))}
+                            </h3>
+                            <div className="auction-history-card-price">${formatPrice(row.price)}</div>
+                            <div className="auction-history-card-meta">
+                              Sold {formatSoldAt(row.timestamp)}
+                            </div>
+                            <dl className="auction-history-card-details">
+                              <div className="auction-history-detail-pair">
+                                <dt>Seller</dt>
+                                <dd>{row.sellerName || '—'}</dd>
                               </div>
-                            )}
-                            {row.bonus2 && (
-                              <div>
-                                {row.bonus2.title}
-                                {row.bonus2Value != null ? ` (${row.bonus2Value})` : ''}
+                              <div className="auction-history-detail-pair">
+                                <dt>Buyer</dt>
+                                <dd>{row.buyerName || '—'}</dd>
                               </div>
-                            )}
-                          </div>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                  {hasMore && <div ref={sentinelRef} className="auction-history-sentinel" aria-hidden />}
+                              <div className="auction-history-detail-pair">
+                                <dt>Quality</dt>
+                                <dd>
+                                  {row.quality != null ? formatPercent(row.quality) || '—' : '—'}
+                                </dd>
+                              </div>
+                              <div className="auction-history-detail-pair">
+                                <dt>Damage</dt>
+                                <dd>{row.damage != null ? row.damage : '—'}</dd>
+                              </div>
+                              <div className="auction-history-detail-pair">
+                                <dt>Accuracy</dt>
+                                <dd>{row.accuracy != null ? row.accuracy : '—'}</dd>
+                              </div>
+                            </dl>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    {hasMore && <div ref={sentinelRef} className="auction-history-sentinel" aria-hidden />}
+                  </div>
                   {loadingMore && (
                     <div className="loading-inline" style={{ marginTop: '1rem' }}>
                       <div className="spinner small" />
