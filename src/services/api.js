@@ -68,16 +68,22 @@ class ApiService {
     const sp = new URLSearchParams();
     if (params.weapon != null && params.weapon !== '') sp.set('weapon', params.weapon);
     if (params.bonus != null && params.bonus !== '') sp.set('bonus', params.bonus);
-    if (params.minBonusValue != null && params.minBonusValue !== '') {
-      sp.set('minBonusValue', params.minBonusValue);
-    }
-    if (params.maxBonusValue != null && params.maxBonusValue !== '') {
-      sp.set('maxBonusValue', params.maxBonusValue);
-    }
+    if (params.bonusValue != null && params.bonusValue !== '') sp.set('bonusValue', params.bonusValue);
+    if (params.sort != null && params.sort !== '') sp.set('sort', params.sort);
+    if (params.order != null && params.order !== '') sp.set('order', params.order);
     if (params.limit != null) sp.set('limit', params.limit);
     if (params.offset != null) sp.set('offset', params.offset);
     const qs = sp.toString();
     return this.request(`/.netlify/functions/get-auction-sold${qs ? `?${qs}` : ''}`);
+  }
+
+  async getAuctionSoldStats(params = {}) {
+    const sp = new URLSearchParams();
+    if (params.weapon != null && params.weapon !== '') sp.set('weapon', params.weapon);
+    if (params.bonus != null && params.bonus !== '') sp.set('bonus', params.bonus);
+    if (params.bonusValue != null && params.bonusValue !== '') sp.set('bonusValue', params.bonusValue);
+    const qs = sp.toString();
+    return this.request(`/.netlify/functions/get-auction-sold-stats${qs ? `?${qs}` : ''}`);
   }
 
   async getMyItems() {

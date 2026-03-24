@@ -1,8 +1,10 @@
 const prisma = require('./_shared/prisma');
 const { getClientIP } = require('./_shared/auth');
-const { validateAuctionSoldParams } = require('./_shared/validate');
-const { serializeAuctionListing } = require('./_shared/serialize');
-const { buildOrderedAuctionIdsQuery } = require('./_shared/auctionSoldSql');
+const { validateAuctionSoldStatsParams } = require('./_shared/validate');
+const {
+  buildAuctionSoldStatsQuery,
+  utcMonthStartUnixSeconds,
+} = require('./_shared/auctionSoldSql');
 
 const RATE_LIMIT_WINDOW_MS = 60000;
 const RATE_LIMIT_MAX = 60;
@@ -27,10 +29,16 @@ function checkRateLimit(ip) {
   return { allowed: true };
 }
 
+function roundAvg(v) {
+  if (v == null) return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.round(n) : null;
+}
+
 const corsHeaders = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
-  'Cache-Control': 'public, max-age=60',
+  'Cache-Control': 'public, max-age=120',
 };
 
 exports.handler = async (event) => {
@@ -72,50 +80,38 @@ exports.handler = async (event) => {
 
   try {
     const rawParams = event.queryStringParameters || {};
-    const {
-      offset,
-      limit,
-      weapon: validWeapon,
-      bonus: validBonus,
-      bonusValue,
-      sort,
-      order,
-    } = validateAuctionSoldParams(rawParams);
-
-    const orderedSql = buildOrderedAuctionIdsQuery({
-      validWeapon,
-      validBonus,
-      bonusValue,
-      sort,
-      order,
-    });
-
-    const idRows = await prisma.$queryRaw`
-      ${orderedSql}
-      LIMIT ${limit} OFFSET ${offset}
-    `;
-
-    const ids = idRows.map((r) => r.auction_id);
-    if (ids.length === 0) {
+    const parsed = validateAuctionSoldStatsParams(rawParams);
+    if (!parsed.valid) {
       return {
-        statusCode: 200,
+        statusCode: 400,
         headers: corsHeaders,
-        body: JSON.stringify([]),
+        body: JSON.stringify({ error: parsed.error || 'Invalid parameters' }),
       };
     }
 
-    const rows = await prisma.auctionHouseListing.findMany({
-      where: { auctionId: { in: ids } },
-      include: {
-        catalog: true,
-        bonus1: true,
-        bonus2: true,
-      },
-    });
+    const { weapon, bonus, bonusValue } = parsed;
+    const now = new Date();
+    const thisMonthStart = utcMonthStartUnixSeconds(now);
+    const lastMonthDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+    const lastMonthStart = utcMonthStartUnixSeconds(lastMonthDate);
 
-    const byId = new Map(rows.map((row) => [row.auctionId, row]));
-    const ordered = ids.map((id) => byId.get(id)).filter(Boolean);
-    const body = ordered.map(serializeAuctionListing);
+    const statsSql = buildAuctionSoldStatsQuery(
+      weapon,
+      bonus,
+      bonusValue,
+      thisMonthStart,
+      lastMonthStart
+    );
+
+    const rows = await prisma.$queryRaw(statsSql);
+
+    const body = rows.map((r) => ({
+      bonusValue: r.bonus_value,
+      avgAllTime: roundAvg(r.avg_all),
+      avgThisMonth: roundAvg(r.avg_this_month),
+      avgLastMonth: roundAvg(r.avg_last_month),
+      saleCount: r.sale_count,
+    }));
 
     return {
       statusCode: 200,
@@ -123,7 +119,7 @@ exports.handler = async (event) => {
       body: JSON.stringify(body),
     };
   } catch (error) {
-    console.error('Get auction sold error:', error);
+    console.error('Get auction sold stats error:', error);
     return {
       statusCode: 500,
       headers: corsHeaders,

@@ -8,6 +8,21 @@ import './AuctionHistoryPage.css';
 
 const PAGE_SIZE = 24;
 
+const SORT_OPTIONS = [
+  { value: 'soldAt:desc', label: 'Newest sold', needBonus: false },
+  { value: 'soldAt:asc', label: 'Oldest sold', needBonus: false },
+  { value: 'price:desc', label: 'Price (high to low)', needBonus: false },
+  { value: 'price:asc', label: 'Price (low to high)', needBonus: false },
+  { value: 'bonusValue:desc', label: 'Bonus % (high to low)', needBonus: true },
+  { value: 'bonusValue:asc', label: 'Bonus % (low to high)', needBonus: true },
+];
+
+function parseSortPreset(preset) {
+  const i = preset.lastIndexOf(':');
+  if (i <= 0) return { sort: 'soldAt', order: 'desc' };
+  return { sort: preset.slice(0, i), order: preset.slice(i + 1) };
+}
+
 function formatPrice(n) {
   if (n == null || Number.isNaN(n)) return '—';
   return Number(n).toLocaleString();
@@ -20,13 +35,20 @@ function formatSoldAt(timestamp) {
   return Number.isNaN(d.getTime()) ? String(timestamp) : d.toLocaleString();
 }
 
-function formatPercent(n) {
+/** Integer % for bonuses (no decimals). */
+function formatBonusPctDisplay(n) {
   if (n == null || Number.isNaN(Number(n))) return null;
-  return `${Number(n).toFixed(1)}%`;
+  return `${Math.round(Number(n))}%`;
+}
+
+/** Integer % for quality. */
+function formatQualityPct(n) {
+  if (n == null || Number.isNaN(Number(n))) return '—';
+  return `${Math.round(Number(n))}%`;
 }
 
 function formatBonusTitleLine(title, value) {
-  const pct = formatPercent(value);
+  const pct = formatBonusPctDisplay(value);
   if (!title) return null;
   return pct ? `${title} ${pct}` : title;
 }
@@ -49,10 +71,46 @@ function AuctionHistoryPage() {
   const [error, setError] = useState(null);
   const [weapon, setWeapon] = useState('');
   const [bonus, setBonus] = useState('');
-  const [minBonusPct, setMinBonusPct] = useState('');
-  const [maxBonusPct, setMaxBonusPct] = useState('');
+  const [bonusValuePct, setBonusValuePct] = useState('');
+  const [sortPreset, setSortPreset] = useState('soldAt:desc');
   const [offset, setOffset] = useState(0);
   const sentinelRef = useRef(null);
+
+  const [stats, setStats] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsError, setStatsError] = useState(null);
+
+  useEffect(() => {
+    if (!weapon || !bonus) {
+      setStats(null);
+      setStatsError(null);
+      setStatsLoading(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+    setStatsLoading(true);
+    setStatsError(null);
+
+    const params = { weapon, bonus };
+    if (bonusValuePct !== '') params.bonusValue = bonusValuePct;
+
+    api
+      .getAuctionSoldStats(params)
+      .then((data) => {
+        if (!cancelled) setStats(Array.isArray(data) ? data : []);
+      })
+      .catch((err) => {
+        if (!cancelled) setStatsError(err.message || 'Failed to load stats');
+      })
+      .finally(() => {
+        if (!cancelled) setStatsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [weapon, bonus, bonusValuePct]);
 
   const loadRows = useCallback(
     async (append = false, fetchOffset = 0) => {
@@ -64,15 +122,17 @@ function AuctionHistoryPage() {
           setLoading(true);
         }
         setError(null);
+        const { sort, order } = parseSortPreset(sortPreset);
         const params = {
           limit: PAGE_SIZE,
           offset: currentOffset,
+          sort,
+          order,
         };
         if (weapon) params.weapon = weapon;
         if (bonus) {
           params.bonus = bonus;
-          if (minBonusPct !== '') params.minBonusValue = minBonusPct;
-          if (maxBonusPct !== '') params.maxBonusValue = maxBonusPct;
+          if (bonusValuePct !== '') params.bonusValue = bonusValuePct;
         }
 
         const data = await api.getAuctionSold(params);
@@ -93,7 +153,7 @@ function AuctionHistoryPage() {
         setLoadingMore(false);
       }
     },
-    [weapon, bonus, minBonusPct, maxBonusPct]
+    [weapon, bonus, bonusValuePct, sortPreset]
   );
 
   useEffect(() => {
@@ -119,6 +179,7 @@ function AuctionHistoryPage() {
 
   const initialLoad = loading && items.length === 0;
   const bonusValueDisabled = !bonus;
+  const showStatsPanel = Boolean(weapon && bonus);
 
   return (
     <div className="public-page">
@@ -128,7 +189,7 @@ function AuctionHistoryPage() {
             <div>
               <h1>Auction house — sold weapons</h1>
               <p className="auction-history-subtitle">
-                Historical sales from synced auction data (newest first).
+                Historical sales from synced auction data. Sort by sold date, price, or bonus %.
               </p>
             </div>
             <Link to="/" className="seller-link">
@@ -162,10 +223,11 @@ function AuctionHistoryPage() {
                 <select
                   value={bonus}
                   onChange={(e) => {
-                    setBonus(e.target.value);
-                    if (!e.target.value) {
-                      setMinBonusPct('');
-                      setMaxBonusPct('');
+                    const v = e.target.value;
+                    setBonus(v);
+                    setBonusValuePct('');
+                    if (!v) {
+                      setSortPreset((prev) => (prev.startsWith('bonusValue') ? 'soldAt:desc' : prev));
                     }
                   }}
                   className="filter-select"
@@ -178,39 +240,84 @@ function AuctionHistoryPage() {
                   ))}
                 </select>
               </label>
-              <div className="filters-row auction-history-bonus-filters" style={{ flexWrap: 'wrap' }}>
-                <label className="filter-group">
-                  <span>Min bonus %</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    placeholder="Min"
-                    value={minBonusPct}
-                    onChange={(e) => setMinBonusPct(e.target.value)}
-                    className="filter-input"
-                    disabled={bonusValueDisabled}
-                  />
-                </label>
-                <label className="filter-group">
-                  <span>Max bonus %</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    placeholder="Max"
-                    value={maxBonusPct}
-                    onChange={(e) => setMaxBonusPct(e.target.value)}
-                    className="filter-input"
-                    disabled={bonusValueDisabled}
-                  />
-                </label>
-                {bonusValueDisabled && (
-                  <span className="auction-history-bonus-filters-muted">Pick a bonus to filter by %</span>
-                )}
-              </div>
+              <label className="filter-group">
+                <span>Bonus %</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  placeholder="Exact %"
+                  value={bonusValuePct}
+                  onChange={(e) => setBonusValuePct(e.target.value)}
+                  className="filter-input auction-history-bonus-value-input"
+                  disabled={bonusValueDisabled}
+                />
+              </label>
+              <label className="filter-group">
+                <span>Sort</span>
+                <select
+                  value={sortPreset}
+                  onChange={(e) => setSortPreset(e.target.value)}
+                  className="filter-select auction-history-sort-select"
+                >
+                  {SORT_OPTIONS.filter((o) => !o.needBonus || bonus).map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {bonusValueDisabled && (
+                <span className="auction-history-bonus-filters-muted">Pick a bonus to filter by exact %</span>
+              )}
             </div>
           </div>
+
+          {showStatsPanel && (
+            <div className="auction-history-stats-panel">
+              <h3 className="auction-history-stats-heading">
+                Averages for {weapon}
+                {bonusValuePct !== '' && Number.isFinite(Number(bonusValuePct))
+                  ? ` · ${bonus} ${Math.round(Number(bonusValuePct))}%`
+                  : ` · ${bonus}`}
+              </h3>
+              {statsLoading && (
+                <p className="auction-history-stats-status">Loading averages…</p>
+              )}
+              {statsError && !statsLoading && (
+                <p className="auction-history-stats-error">{statsError}</p>
+              )}
+              {!statsLoading && !statsError && stats && stats.length === 0 && (
+                <p className="auction-history-stats-status">No sold listings for this weapon and bonus yet.</p>
+              )}
+              {!statsLoading && !statsError && stats && stats.length > 0 && (
+                <div className="auction-history-stats-table-wrap">
+                  <table className="auction-history-stats-table">
+                    <thead>
+                      <tr>
+                        <th>Bonus value</th>
+                        <th>All-time avg price</th>
+                        <th>This month avg</th>
+                        <th>Last month avg</th>
+                        <th>Sales</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {stats.map((row) => (
+                        <tr key={row.bonusValue}>
+                          <td>{row.bonusValue != null ? `${row.bonusValue}%` : '—'}</td>
+                          <td>{row.avgAllTime != null ? `$${formatPrice(row.avgAllTime)}` : '—'}</td>
+                          <td>{row.avgThisMonth != null ? `$${formatPrice(row.avgThisMonth)}` : '—'}</td>
+                          <td>{row.avgLastMonth != null ? `$${formatPrice(row.avgLastMonth)}` : '—'}</td>
+                          <td>{row.saleCount != null ? row.saleCount : '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
 
           {error && (
             <div className="error-container">
@@ -274,9 +381,7 @@ function AuctionHistoryPage() {
                               </div>
                               <div className="auction-history-detail-pair">
                                 <dt>Quality</dt>
-                                <dd>
-                                  {row.quality != null ? formatPercent(row.quality) || '—' : '—'}
-                                </dd>
+                                <dd>{row.quality != null ? formatQualityPct(row.quality) : '—'}</dd>
                               </div>
                               <div className="auction-history-detail-pair">
                                 <dt>Damage</dt>

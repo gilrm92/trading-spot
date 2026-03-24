@@ -109,12 +109,75 @@
   font-weight: 400;
 }
 
-.auction-history-bonus-filters .filter-input {
-  width: 4.25rem;
+.auction-history-bonus-value-input {
+  width: 5rem;
+}
+
+.auction-history-sort-select {
+  min-width: 11rem;
 }
 
 .auction-history-bonus-filters-muted {
   font-size: 0.8rem;
   color: #666;
   align-self: center;
+}
+
+.auction-history-stats-panel {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.1rem;
+  background: #222;
+  border: 1px solid #333;
+  border-radius: 8px;
+}
+
+.auction-history-stats-heading {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ddd;
+}
+
+.auction-history-stats-status {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #888;
+}
+
+.auction-history-stats-error {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #ff6b6b;
+}
+
+.auction-history-stats-table-wrap {
+  overflow-x: auto;
+}
+
+.auction-history-stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  color: #ccc;
+}
+
+.auction-history-stats-table th,
+.auction-history-stats-table td {
+  padding: 0.5rem 0.65rem;
+  text-align: right;
+  border-bottom: 1px solid #333;
+}
+
+.auction-history-stats-table th:first-child,
+.auction-history-stats-table td:first-child {
+  text-align: left;
+}
+
+.auction-history-stats-table th {
+  color: #888;
+  font-weight: 600;
+}
+
+.auction-history-stats-table tbody tr:last-child td {
+  border-bottom: none;
 }

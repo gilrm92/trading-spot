@@ -91,6 +91,8 @@ function validateGetItemsParams(params = {}) {
 
 const BONUS_VALUE_PCT_MAX = 1000;
 
+const AUCTION_SOLD_SORT_WHITELIST = ['soldAt', 'price', 'bonusValue'];
+
 function optionalBonusPercentParam(val) {
   if (val == null || val === '') return null;
   const n = parseFloat(val);
@@ -112,19 +114,43 @@ function validateAuctionSoldParams(params = {}) {
   const weapon = weaponRaw && WEAPONS.includes(weaponRaw) ? weaponRaw : '';
   const bonus = bonusRaw && WEAPON_BONUSES.includes(bonusRaw) ? bonusRaw : '';
 
-  let minBonusValue = optionalBonusPercentParam(params.minBonusValue);
-  let maxBonusValue = optionalBonusPercentParam(params.maxBonusValue);
-  if (minBonusValue != null && maxBonusValue != null && minBonusValue > maxBonusValue) {
-    const t = minBonusValue;
-    minBonusValue = maxBonusValue;
-    maxBonusValue = t;
-  }
-  if (!bonus) {
-    minBonusValue = null;
-    maxBonusValue = null;
+  let sort = whitelist(params.sort, AUCTION_SOLD_SORT_WHITELIST) || 'soldAt';
+  const order = whitelist(params.order, ORDER_WHITELIST) || 'desc';
+  if (sort === 'bonusValue' && !bonus) {
+    sort = 'soldAt';
   }
 
-  return { offset, limit, weapon, bonus, minBonusValue, maxBonusValue };
+  let bonusValue = optionalBonusPercentParam(params.bonusValue);
+  if (!bonus) {
+    bonusValue = null;
+  } else if (bonusValue != null) {
+    bonusValue = Math.round(bonusValue);
+  }
+
+  return { offset, limit, weapon, bonus, bonusValue, sort, order };
+}
+
+/**
+ * Stats table: requires weapon + bonus from whitelist. Optional integer bonus %.
+ */
+function validateAuctionSoldStatsParams(params = {}) {
+  const weaponRaw = (params.weapon || '').trim();
+  const bonusRaw = (params.bonus || '').trim();
+  const weapon = weaponRaw && WEAPONS.includes(weaponRaw) ? weaponRaw : '';
+  const bonus = bonusRaw && WEAPON_BONUSES.includes(bonusRaw) ? bonusRaw : '';
+
+  let bonusValue = optionalBonusPercentParam(params.bonusValue);
+  if (!bonus) {
+    bonusValue = null;
+  } else if (bonusValue != null) {
+    bonusValue = Math.round(bonusValue);
+  }
+
+  if (!weapon || !bonus) {
+    return { valid: false, error: 'weapon and bonus are required' };
+  }
+
+  return { valid: true, weapon, bonus, bonusValue };
 }
 
 const MAX_DESCRIPTION_LENGTH = 5000;
@@ -188,7 +214,9 @@ module.exports = {
   parseFloatSafe,
   validateGetItemsParams,
   validateAuctionSoldParams,
+  validateAuctionSoldStatsParams,
   validateUpdateItemBody,
   SORT_WHITELIST,
   ORDER_WHITELIST,
+  AUCTION_SOLD_SORT_WHITELIST,
 };
