@@ -5,6 +5,8 @@
  * CLI: --head-interval-seconds=30 (default 30)
  */
 
+require('dotenv').config({ path: require('path').resolve(__dirname, '..', '.env') });
+
 const { PrismaClient } = require('@prisma/client');
 const {
   runHeadPollPass,

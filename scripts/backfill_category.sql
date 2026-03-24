@@ -1,0 +1,3 @@
+-- Backfill category: use scripts/backfill_category.js instead.
+-- Category must be derived from weapon NAME (not sub_type) - some SMGs are Secondary.
+-- Run: node scripts/backfill_category.js

@@ -1,9 +1,11 @@
 /**
  * One-time full auction house scan: follows `prev` until the end (weapon rows only).
- * Env: DATABASE_URL, TORN_AUCTION_API_KEY
+ * Env: DATABASE_URL, TORN_AUCTION_API_KEY (e.g. in project root `.env`)
  *
  * CLI: --interval-seconds=5 (delay between API requests, default 5)
  */
+
+require('dotenv').config({ path: require('path').resolve(__dirname, '..', '.env') });
 
 const { PrismaClient } = require('@prisma/client');
 const { runPaginationPass } = require('../netlify/functions/_shared/auctionHouseSync');
