@@ -10,9 +10,9 @@
   included_files = ["prisma/**/*.prisma"]
 
 # Head-only: newest auction page each run (full backfill: `npm run auction-sync:full` locally).
-# Cron is minute-resolution; for true 30s polling use the Node script or an external scheduler.
+# Cron runs in UTC. `*/30 * * * *` = twice per hour at :00 and :30.
 [functions."sync-auction-house"]
-  schedule = "* * * * *"
+  schedule = "*/30 * * * *"
 
 [[redirects]]
   from = "/card/*"

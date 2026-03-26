@@ -69,7 +69,10 @@ exports.handler = async (event) => {
   }
 
   try {
-    const { pagesFetched, rowCount } = await runHeadPollPass(prisma, apiKey);
+    const { pagesFetched, rowCount, weaponRows } = await runHeadPollPass(
+      prisma,
+      apiKey
+    );
 
     return {
       statusCode: 200,
@@ -79,6 +82,7 @@ exports.handler = async (event) => {
         mode: 'head',
         pagesFetched,
         rowCount,
+        weaponRows,
       }),
     };
   } catch (e) {

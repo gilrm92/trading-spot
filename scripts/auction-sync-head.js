@@ -57,6 +57,9 @@ async function main() {
   console.log(
     `[auction-sync:head] Polling first page every ${headIntervalSeconds}s (Ctrl+C to stop)`
   );
+  console.log(
+    '[auction-sync:head] Logs each cycle: API row count vs weapons actually upserted (non-weapons are skipped).'
+  );
 
   try {
     while (!stopping) {
